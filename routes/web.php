@@ -35,3 +35,10 @@ Route::post('/state/store', [App\Http\Controllers\StatesController::class, 'stor
 Route::get('/state/edit/{param}', [App\Http\Controllers\StatesController::class, 'edit'])->name('state.edit');
 Route::post('/state/update/{param}', [App\Http\Controllers\StatesController::class, 'update'])->name('state.update');
 Route::post('/state/delete/{id}', [App\Http\Controllers\StatesController::class, 'destroy'])->name('state.destroy');
+
+Route::get('/cities', [App\Http\Controllers\CitiesController::class, 'index'])->name('cities');
+Route::get('/city/add', [App\Http\Controllers\CitiesController::class, 'create'])->name('city.add');
+Route::post('/city/store', [App\Http\Controllers\CitiesController::class, 'store'])->name('city.store');
+Route::get('/city/edit/{param}', [App\Http\Controllers\CitiesController::class, 'edit'])->name('city.edit');
+Route::post('/city/update/{param}', [App\Http\Controllers\CitiesController::class, 'update'])->name('city.update');
+Route::post('/city/delete/{id}', [App\Http\Controllers\CitiesController::class, 'destroy'])->name('city.destroy');
