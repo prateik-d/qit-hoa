@@ -40,8 +40,12 @@ class PermissionsController extends Controller
      */
     public function store(Request $request)
     {
-        $this->permissions->insertData($request);
-        return redirect()->route('permissions')->withSuccess(__('Permission created successfully.'));
+        try {
+            $this->permissions->insertData($request);
+            return redirect()->route('permissions')->withSuccess(__('Permission created successfully.'));
+        } catch(Exception $e)  {
+            return redirect('permission.add')->with('failed',"Operation failed");
+        }
     }
 
     /**
@@ -76,8 +80,12 @@ class PermissionsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $save = $this->permissions->updateData($request,$id);
-        return redirect()->route('permissions')->withSuccess(__('Permission updated successfully.'));
+        try {
+            $save = $this->permissions->updateData($request,$id);
+            return redirect()->route('permissions')->withSuccess(__('Permission updated successfully.'));
+        }  catch(Exception $e)  {
+            return redirect('permission.edit')->with('failed',"Operation failed");
+        }
     }
 
     /**
@@ -88,7 +96,7 @@ class PermissionsController extends Controller
      */
     public function destroy($id)
     {
-        $permission = Permission::find($id);
+        $permission = Permission::findOrFail($id);
         $permission->delete();
 
         return redirect()->route('permissions')->with('success', 'Permission has been deleted');
