@@ -42,3 +42,20 @@ Route::post('/city/store', [App\Http\Controllers\CitiesController::class, 'store
 Route::get('/city/edit/{param}', [App\Http\Controllers\CitiesController::class, 'edit'])->name('city.edit');
 Route::post('/city/update/{param}', [App\Http\Controllers\CitiesController::class, 'update'])->name('city.update');
 Route::post('/city/delete/{id}', [App\Http\Controllers\CitiesController::class, 'destroy'])->name('city.destroy');
+
+Route::get('/roles', [App\Http\Controllers\RolesController::class, 'index'])->name('roles');
+Route::get('/role/add', [App\Http\Controllers\RolesController::class, 'create'])->name('role.add');
+Route::post('/role/store', [App\Http\Controllers\RolesController::class, 'store'])->name('role.store');
+Route::get('/role/edit/{param}', [App\Http\Controllers\RolesController::class, 'edit'])->name('role.edit');
+Route::post('/role/update/{param}', [App\Http\Controllers\RolesController::class, 'update'])->name('role.update');
+Route::post('/role/delete/{id}', [App\Http\Controllers\RolesController::class, 'destroy'])->name('role.destroy');
+
+Route::get('/headings', [App\Http\Controllers\PermissionHeadingController::class, 'index'])->name('headings');
+Route::get('/heading/add', [App\Http\Controllers\PermissionHeadingController::class, 'create'])->name('heading.add');
+Route::post('/heading/store', [App\Http\Controllers\PermissionHeadingController::class, 'store'])->name('heading.store');
+Route::get('/heading/edit/{param}', [App\Http\Controllers\PermissionHeadingController::class, 'edit'])->name('heading.edit');
+Route::post('/heading/update/{param}', [App\Http\Controllers\PermissionHeadingController::class, 'update'])->name('heading.update');
+Route::post('/heading/delete/{id}', [App\Http\Controllers\PermissionHeadingController::class, 'destroy'])->name('heading.destroy');
+
+
+Route::get('/users', [App\Http\Controllers\UsersController::class, 'index'])->name('users');
