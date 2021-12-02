@@ -18,6 +18,10 @@ class Permission extends Model
         'status',
     ];
 
+    public function permission_heading() {
+        return $this->belongsTo(PermissionHeading::class);
+    }
+
     public function insertData($request) {
         if($request->status=='on') {
             $status = 1;
@@ -26,6 +30,7 @@ class Permission extends Model
         }
         return Permission::create([
             'type' => $request->type,
+            'permission_heading_id' => $request->permission_heading_id,
             'status'=>$status
         ]);
     }
@@ -38,6 +43,7 @@ class Permission extends Model
         }
         $permission = Permission::find($id);
         $permission->type = $request->input('type');
+        $permission->permission_heading_id = $request->input('permission_heading_id');
         $permission->status = $status;
         return $permission->update();
     }

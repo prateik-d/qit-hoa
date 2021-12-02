@@ -29,6 +29,16 @@
                             <span class="text-danger text-left">{{ $errors->first('type') }}</span>
                         @endif
                     </div>
+                    <div class='form-group'>
+                        <select class="form-control" name="permission_heading_id">
+                            <option>Select heading</option>
+                            @foreach ($headings as $key => $value)
+                                <option value="{{ $key }}" {{ ( $key == $permission->permission_heading_id) ? 'selected' : '' }}> 
+                                    {{ $value }} 
+                                </option>
+                            @endforeach    
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="type" class="form-label">Is visible</label>
                         <?php 

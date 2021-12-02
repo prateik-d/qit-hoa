@@ -11,9 +11,9 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h4>Permissions</h4>
+                    <h4>Roles</h4>
                     <div class="pull-right">
-                        <a href="{{ route('permission.add') }}" class='btn btn-primary btn-sm'>Add</a>
+                        <a href="{{ route('role.add') }}" class='btn btn-primary btn-sm'>Add</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -22,29 +22,18 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Label</th>
-                                <th>Heading</th>
-                                <th>Status</th>
+                                <th>Role</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($permissions as $per)
+                            @foreach ($roles as $role)
                             <tr>
-                                <td>{{ $per->id }}</td>
-                                <td>{{ $per->type }}</td>
-                                <td>{{ $per->permission_heading->heading }}</td>
-                                <?php 
-                                    if($per->status==1)  {
-                                        $status = 'active';
-                                    } else {
-                                        $status = 'inactive';
-                                    }
-                                ?>
-                                <td>{{ $status }}</td>
+                                <td>{{ $role->id }}</td>
+                                <td>{{ $role->role }}</td>
                                 <td>
-                                    <a href="{{ route('permission.edit',$per->id) }}" class="btn btn-primary btn-sm">Edit</a>
-                                    <form action="{{ route('permission.destroy', $per->id)}}" method="post">
+                                    <a href="{{ route('role.edit',$role->id) }}" class="btn btn-primary btn-sm">Edit</a>
+                                    <form action="{{ route('role.destroy', $role->id)}}" method="post">
                                         @csrf
                                         <input class="btn btn-danger btn-sm" type="submit" value="Delete" />
                                     </form>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Permission;
+use App\Models\PermissionHeading;
 
 class PermissionsController extends Controller
 {
@@ -19,6 +20,7 @@ class PermissionsController extends Controller
     public function index()
     {
         $permissions = Permission::all();
+        dd($permissions);
         return view('permissions.index', compact('permissions'));
     }
 
@@ -29,7 +31,8 @@ class PermissionsController extends Controller
      */
     public function create()
     {
-        return view('permissions.create');
+        $headings = PermissionHeading::pluck('heading','id');
+        return view('permissions.create')->with(compact('headings'));
     }
 
     /**
@@ -67,8 +70,9 @@ class PermissionsController extends Controller
      */
     public function edit($id)
     {
+        $headings = PermissionHeading::pluck('heading','id');
         $permission = Permission::find($id);
-        return view('permissions.edit')->with(compact('permission'));
+        return view('permissions.edit')->with(compact('permission','headings'));
     }
 
     /**
