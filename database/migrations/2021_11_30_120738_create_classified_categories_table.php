@@ -16,7 +16,8 @@ class CreateClassifiedCategoriesTable extends Migration
         Schema::create('classified_categories', function (Blueprint $table) {
             $table->id();
             $table->string('category',100);
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
+            $table->unsignedBigInteger('added_by');
             $table->timestamps();
         });
     }

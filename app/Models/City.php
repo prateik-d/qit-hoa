@@ -9,10 +9,11 @@ class City extends Model
 {
     use HasFactory;
 
-    protected $table = 'cities';
-
-    public $timestamps = true;
-
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'city',
         'state_id'

@@ -16,7 +16,7 @@ class CreateClassifiedConditionsTable extends Migration
         Schema::create('classified_conditions', function (Blueprint $table) {
             $table->id();
             $table->string('condition',100);
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }

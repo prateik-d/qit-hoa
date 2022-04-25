@@ -11,3 +11,7 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+app/Http/Controllers/API/User/VotingController.php
+app/Http/Controllers/API/User/LostFoundItemController.php
+app/Http/Controllers/API/User/ImpLinkController.php
+app/Http/Controllers/API/User/FaqController.php

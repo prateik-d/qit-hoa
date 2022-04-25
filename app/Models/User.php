@@ -6,10 +6,19 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
+use App\Models\AccRequest;
+use App\Models\Role;
+use App\Models\Event;
+use App\Models\AccRequestUser;
+use App\Models\LostFoundItem;
+use App\Models\Ticket;
+use App\Models\UserDocument;
+use App\Models\Vehicle;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +31,7 @@ class User extends Authenticatable
         'display_name',
         'email',
         'password',
+        'remember_token',
         'role_id',
         'city_id',
         'state_id',
@@ -51,4 +61,54 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function events()
+    {
+        return $this->hasMany(Event::class, 'organized_by');
+    }
+
+    public function userDocuments()
+    {
+        return $this->hasMany(UserDocument::class);
+    }
+
+    public function getFullNameAttribute() // notice that the attribute name is in CamelCase.
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function accRequests()
+    {
+        return $this->belongsToMany(AccRequest::class, AccRequestUser::class, 'neighbour_id','acc_request_id')->withPivot('id', 'approval_status', 'neighbour_note')->withTimestamps();
+    }
+
+    public function pets()
+    {
+        return $this->hasMany(Pet::class, 'owner_id');
+    }
+
+    public function usersLostFoundItems()
+    {
+        return $this->hasMany(LostFoundItem::class, 'belongs_to');
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'id');
+    }
+
+    public function vehicles()
+    {
+        return $this->hasMany(Vehicle::class, 'owner_id');
+    }
+
+    public function committees()
+    {
+        return $this->belongsToMany(Committee::class, CommitteeMember::class, 'user_id','committee_id')->withPivot('id', 'added_by')->withTimestamps();
+    }
 }

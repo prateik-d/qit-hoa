@@ -17,7 +17,6 @@ class CreateCommitteePhotosTable extends Migration
             $table->id();
             $table->unsignedBigInteger('committee_id');
             $table->string('file_path');
-            $table->tinyInteger('status');
             $table->timestamps();
         });
     }

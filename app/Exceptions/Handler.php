@@ -2,8 +2,11 @@
 
 namespace App\Exceptions;
 
+use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+// use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -34,8 +37,14 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
-        $this->reportable(function (Throwable $e) {
-            //
-        });
+        // $this->reportable(function (Throwable $e) {
+        //     //
+        // });
+        
+        // this exception will throw when model binding is used to retrive non exist record
+        // $this->renderable(function (NotFoundHttpException $e, $request) {
+        //     return response()->json(['error' => 'Data not found.']);
+        // });
     }
+
 }
