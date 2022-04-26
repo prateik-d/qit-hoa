@@ -1,0 +1,41 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateReservationsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('reservations', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('ammenity_id');
+            $table->string('purpose');
+            $table->text('description');
+            $table->unsignedBigInteger('booked_by');
+            $table->date('booking_date');
+            $table->time('timeslots');
+            $table->decimal('booking_price', 10, 2);
+            $table->enum('payment_mode', ['cash', 'card', 'online']);
+            $table->dateTime('payment_date');
+            $table->enum('payment_status', ['unpaid', 'paid'])->default('unpaid');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('reservations');
+    }
+}

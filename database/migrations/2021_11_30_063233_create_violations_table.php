@@ -21,7 +21,7 @@ class CreateViolationsTable extends Migration
             $table->text('description');
             $table->date('date');
             $table->string('approved_on');
-            $table->string('status',10);
+            $table->enum('status', ['open', 'closed', 'under review'])->default('open');
             $table->timestamps();
         });
     }

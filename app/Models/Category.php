@@ -8,23 +8,24 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model
 {
     use HasFactory;
-
-    protected $table = 'categories';
-
-    public $timestamps = true;
-
+    
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'name',
         'description',
         'created_at',
         'updated_at',
-        'deleted_at'
+        // 'deleted_at'
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        // 'deleted_at' => 'datetime'
     ];
 
     public function insertData($request) {

@@ -16,8 +16,7 @@ class CreateEventPhotosTable extends Migration
         Schema::create('event_photos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('event_id');
-            $table->string('photo');
-            $table->tinyInteger('status');
+            $table->string('event_photo_path');
             $table->timestamps();
         });
     }

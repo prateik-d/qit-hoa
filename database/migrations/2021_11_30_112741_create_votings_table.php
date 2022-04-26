@@ -15,12 +15,15 @@ class CreateVotingsTable extends Migration
     {
         Schema::create('votings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('voting_title_id');
+            $table->unsignedBigInteger('voting_category_id');
             $table->text('description');
+            $table->string('year');
             $table->date('start_date');
             $table->date('end_date');
-            $table->string('nominees');
-            $table->string('status');
+            $table->boolean('vote_option')->default(0)->nullable()->comment = '1-all owners';
+            $table->text('voting_winner')->nullable();
+            $table->enum('status', ['open', 'closed', 'archived'])->default('open');
+            $table->unsignedBigInteger('added_by');
             $table->timestamps();
         });
     }
