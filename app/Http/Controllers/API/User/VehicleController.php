@@ -175,7 +175,7 @@ class VehicleController extends BaseController
                     $vehicleDocument->status = 1;
                     $vehicleDocument->save();
                 }
-                return $this->sendResponse(new VehicleResource($vehicle), 'Vehicle updated successfully.');
+                return $this->sendResponse([], 'Vehicle updated successfully.');
             } else {
                 return $this->sendError('Failed to update vehicle.');   
             }

@@ -8,11 +8,13 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Event;
+use App\Models\EventPhoto;
 use App\Models\EventCategory;
 use App\Models\EventLocation;
 use App\Models\User;
 use App\Http\Resources\Event as EventResource;
 use App\Http\Requests\StoreEventRequest;
+
 class EventController extends BaseController
 {
     /**
@@ -48,6 +50,30 @@ class EventController extends BaseController
             return $this->sendError('Operation failed to retrieve event data.');
         }
     }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        try {
+            $locations = EventLocation::where('status', 1)->orderBy('location', 'asc')->get();
+            $categories = EventCategory::where('status', 1)->orderBy('category', 'asc')->get();
+
+            if (count($locations) && count($categories)) {
+                Log::info('Event locations and categories displayed successfully.');
+                return $this->sendResponse([$locations, $categories], 'Event locations and categories displayed successfully.');
+            } else {
+                return $this->sendError('No data found for event locations and categories.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve event locations and categories due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve event locations and categories.');
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -61,6 +87,12 @@ class EventController extends BaseController
             $input['organized_by'] = Auth::guard('api')->user()->id;
             $event = Event::create($input);
             if ($event) {
+                if ($request->hasFile('photos')) {
+                    $folder = 'event_photos';
+                    $input = $request->photos;
+                    $files = $request->file('photos');
+                    $this->fileUpload($folder, $input, $files, $event);
+                }
                 Log::info('Event created successfully.');
                 return $this->sendResponse(new EventResource($event), 'Event created successfully.');
             } else {
@@ -69,6 +101,43 @@ class EventController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to create event due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to create event.');
+        }
+    }
+
+    /**
+     * File upload for event.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function fileUpload($folder, $input, $files, $event)
+    {
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            foreach ($files as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $event->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $eventimages = new EventPhoto();
+                        $eventimages->event_id = $event->id;
+                        $eventimages->event_photo_path = $path;
+                        $eventimages->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
+                }
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to upload event images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload event images.');
         }
     }
 
@@ -121,8 +190,24 @@ class EventController extends BaseController
             $input = $request->except(['_method']);
             $event = Auth::guard('api')->user()->events->find($id);
             if ($event) {
-                $updated = $event->fill($input)->save();
+                $update = $event->fill($input)->save();
                 if ($update) {
+                    if ($request->hasFile('photos')) {
+                        // Delete old images to upload new
+                        if ($event->eventImages()) {
+                            foreach ($event->eventImages as $file) {
+                                if (file_exists(storage_path('app/'.$file->event_photo_path))) { 
+                                    unlink(storage_path('app/'.$file->event_photo_path));
+                                }
+                            }
+                            $event->eventImages()->delete();
+                        }
+                        // Add new images
+                        $folder = 'event_photos';
+                        $input = $request->photo;
+                        $files = $request->file('photo');
+                        $this->fileUpload($folder, $input, $files, $event);
+                    }
                     Log::info('Event updated successfully for event id: '.$id);
                     return $this->sendResponse([], 'Event updated successfully.');
                 } else {
@@ -166,11 +251,17 @@ class EventController extends BaseController
         try {
             $event = Auth::guard('api')->user()->events->find($id);
             if ($event) {
-                if ($event->delete()) {
-                    return $this->sendResponse([], 'Event deleted successfully.');
-                } else {
-                    return $this->sendError('Event can not be deleted.');
+                if ($event->eventImages()) {
+                    foreach ($event->eventImages as $file) {
+                        if (file_exists(storage_path('app/'.$file->event_photo_path))) { 
+                            unlink(storage_path('app/'.$file->event_photo_path));
+                        }
+                    }
+                    $event->eventImages()->delete();
                 }
+                $event->delete();
+                Log::info('Event deleted successfully for event id: '.$id);
+                return $this->sendResponse([], 'Event deleted successfully.');
             } else {
                 return $this->sendError('Event not found.');
             }

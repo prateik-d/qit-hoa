@@ -1,10 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\API\Admin;
+   
+use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Voting;
+use App\Http\Requests\StoreVotingRequest;
 
-class VotingController extends Controller
+class VotingController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +19,29 @@ class VotingController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $votingCategories = VotingCategory::where('status', 1)
+                                ->orderBy('category', 'ASC')
+                                ->get();
+
+            $voting = Voting::where('title', 'LIKE', '%'.$request->get('title'). '%')
+                        ->where('year', 'LIKE', '%'.$request->get('year'). '%')
+                        ->where('status', 'LIKE', '%'.$request->get('status'). '%')->get();
+
+            if (count($votingCategories)) {
+                if (count($voting)) {
+                    Log::info('Voting data displayed successfully.');
+                    return $this->sendResponse([$votingCategories, $voting], 'Voting data retrieved successfully.');
+                } else {
+                    return $this->sendError('No data found for voting');
+                }
+            } else {
+                return $this->sendError('No data found for categories');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve voting data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve voting data.');
+        }
     }
 
     /**

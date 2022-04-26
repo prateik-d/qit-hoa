@@ -116,10 +116,10 @@ class PetTypeController extends BaseController
             $input = $request->except(['_method']);
             $petType = PetType::findOrFail($id);
             if ($petType) {
-                $updated = $petType->fill($input)->save();
-                if ($updated) {
+                $update = $petType->fill($input)->save();
+                if ($update) {
                     Log::info('Pet-type updated successfully for pet-type id: '.$id);
-                    return $this->sendResponse(new PetTypeResource($petType), 'Pet-type updated successfully.');
+                    return $this->sendResponse([], 'Pet-type updated successfully.');
                 } else {
                     return $this->sendError('Failed to update pet-type.');      
                 }

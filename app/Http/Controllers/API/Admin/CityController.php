@@ -132,7 +132,7 @@ class CityController extends Controller
                 $update = $city->fill($input)->save();
                 if ($update) {
                     Log::info('City updated successfully for city id: '.$id);
-                    return $this->sendResponse($city, 'City updated successfully.');
+                    return $this->sendResponse([], 'City updated successfully.');
                 } else {
                     return $this->sendError('Failed to update city.');
                 }

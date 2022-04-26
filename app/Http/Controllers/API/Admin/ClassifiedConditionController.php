@@ -120,7 +120,7 @@ class ClassifiedConditionController extends Controller
                 $update = $classifiedCondition->fill($input)->save();
                 if ($update) {
                     Log::info('Classified condition updated successfully for condition id: '.$id);
-                    return $this->sendResponse($classifiedCondition, 'Classified condition updated successfully.');
+                    return $this->sendResponse([], 'Classified condition updated successfully.');
                 } else {
                     return $this->sendError('Failed to update classified condition.');
                 }

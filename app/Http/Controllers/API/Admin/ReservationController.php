@@ -131,10 +131,10 @@ class ReservationController extends BaseController
             $input = $request->except(['_method']);
             $reservation = Reservation::findOrFail($id);
             if ($reservation) {
-                $updated = $reservation->fill($input)->save();
-                if ($updated) {
+                $update = $reservation->fill($input)->save();
+                if ($update) {
                     Log::info('Reservation updated successfully for reservation id: '.$id);
-                    return $this->sendResponse(new ReservationResource($reservation), 'Reservation updated successfully.');
+                    return $this->sendResponse([], 'Reservation updated successfully.');
                 } else {
                     return $this->sendError('Failed to update reservation');      
                 }

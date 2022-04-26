@@ -103,26 +103,32 @@ class ClassifiedController extends BaseController
      */
     public function fileUpload($folder, $input, $files, $classified)
     {
-        $allowedfileExtension=['pdf','jpg','jpeg','png','xlsx'];
-        foreach ($files as $file) {
-            $extension = $file->getClientOriginalExtension();
-            $check = in_array($extension,$allowedfileExtension);
-            if($check) {
-                foreach((array)$input as $mediaFiles) {
-                    $name = $mediaFiles->getClientOriginalName();
-                    $filename = $classified->id.'-'.$name;
-                    $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                    $ext  =  $mediaFiles->getClientOriginalExtension();
-                    //store image file into directory and db
-                    $classifiedImages = new classifiedImage();
-                    $classifiedImages->classified_id = $classified->id;
-                    $classifiedImages->file_path = $path;
-                    $classifiedImages->save();
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            foreach ($files as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $classified->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $classifiedImages = new classifiedImage();
+                        $classifiedImages->classified_id = $classified->id;
+                        $classifiedImages->file_path = $path;
+                        $classifiedImages->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
                 }
-            } else {
-                return $this->sendError('invalid_file_format'); 
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
             }
-            return response()->json(['file_uploaded'], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to upload classified images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload classified images.');
         }
     }
 
@@ -194,7 +200,7 @@ class ClassifiedController extends BaseController
                         $this->fileUpload($folder, $input, $files, $classified);
                     }
                     Log::info('Classified item updated successfully for item id: '.$id);
-                    return $this->sendResponse($classified, 'Classified item updated successfully.');
+                    return $this->sendResponse([], 'Classified item updated successfully.');
                 } else {
                     return $this->sendError('Failed to update classified item.');
                 }

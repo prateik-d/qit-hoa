@@ -29,6 +29,20 @@ class StoreTicketRequest extends FormRequest
             'ticket_category_id' => 'required',
             'amenities_id' => 'required',
             'description' => 'required',
+            'photo.*' => 'mimes:jpg,jpeg,bmp,png,pdf,xlsx',
+            'photo' => 'max:5',
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            "photo.max" => "file can't be more than 5."
         ];
     }
 }

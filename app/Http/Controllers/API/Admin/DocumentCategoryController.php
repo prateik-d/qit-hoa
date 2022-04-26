@@ -120,7 +120,7 @@ class DocumentCategoryController extends BaseController
                 $update = $DocumentCategory->fill($input)->save();
                 if ($update) {
                     Log::info('Document category updated successfully for category id: '.$id);
-                    return $this->sendResponse($DocumentCategory, 'Document category updated successfully.');
+                    return $this->sendResponse([], 'Document category updated successfully.');
                 } else {
                     return $this->sendError('Failed to update document category.');     
                 }

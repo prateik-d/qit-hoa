@@ -117,10 +117,10 @@ class FaqController extends BaseController
             $input = $request->except(['_method']);
             $faq = Faq::findOrFail($id);
             if ($faq) {
-                $updated = $faq->fill($input)->save();
-                if ($updated) {
+                $update = $faq->fill($input)->save();
+                if ($update) {
                     Log::info('Faq updated successfully for faq id: '.$id);
-                    return $this->sendResponse(new FaqResource($faq), 'Faq updated successfully.');
+                    return $this->sendResponse([], 'Faq updated successfully.');
                 } else {
                     return $this->sendError('Failed to update faq');      
                 }

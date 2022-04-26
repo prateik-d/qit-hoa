@@ -22,7 +22,7 @@ class ViolationController extends BaseController
     {
         try {
             $violations = Violation::all();
-            if (count($ticket)) {
+            if (count($violations)) {
                 Log::info('Violations data displayed successfully.');
                 return $this->sendResponse(ViolationResource::collection($violations), 'Violations data retrieved successfully.');
             } else {
@@ -117,10 +117,10 @@ class ViolationController extends BaseController
             $input = $request->except(['_method']);
             $violation = Violation::findOrFail($id);
             if ($violation) {
-                $updated = $violation->fill($input)->save();
-                if ($updated) {
+                $update = $violation->fill($input)->save();
+                if ($update) {
                     Log::info('Violation updated successfully for violation id: '.$id);
-                    return $this->sendResponse(new ViolationResource($violation), 'Violation updated successfully.');
+                    return $this->sendResponse([], 'Violation updated successfully.');
                 } else {
                     return $this->sendError('Failed to update violation.');      
                 }

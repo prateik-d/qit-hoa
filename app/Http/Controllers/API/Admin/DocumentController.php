@@ -150,7 +150,7 @@ class DocumentController extends BaseController
                 $updated = $document->fill($input)->save();
                 if ($updated) {
                     Log::info('Document updated successfully for document id: '.$id);
-                    return $this->sendResponse(new DocumentResource($document), 'Document updated successfully.');
+                    return $this->sendResponse([], 'Document updated successfully.');
                 } else {
                     return $this->sendError('Failed to update document');      
                 }

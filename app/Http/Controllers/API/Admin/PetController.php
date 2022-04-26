@@ -120,27 +120,33 @@ class PetController extends BaseController
      */
     public function fileUpload($folder, $input, $files, $pet)
     {
-        $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx'];
-        foreach ($files as $file) {      
-            $extension = $file->getClientOriginalExtension();
-            $check = in_array($extension,$allowedfileExtension);
-            if($check) {
-                foreach((array)$input as $mediaFiles) {
-                    $name = $mediaFiles->getClientOriginalName();
-                    $filename = $pet->id.'-'.$name;
-                    $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                    $ext  =  $mediaFiles->getClientOriginalExtension();
-                    //store image file into directory and db
-                    $petimages = new PetImage();
-                    $petimages->pet_id = $pet->id;
-                    // $petimages->file_type = $ext;
-                    $petimages->img_file_path = $path;
-                    $petimages->save();
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx'];
+            foreach ($files as $file) {      
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $pet->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $petimages = new PetImage();
+                        $petimages->pet_id = $pet->id;
+                        // $petimages->file_type = $ext;
+                        $petimages->img_file_path = $path;
+                        $petimages->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
                 }
-            } else {
-                return $this->sendError('invalid_file_format'); 
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
             }
-            return response()->json(['file_uploaded'], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to upload pet images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload pet images.');
         }
     }
 

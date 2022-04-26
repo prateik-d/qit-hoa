@@ -32,7 +32,21 @@ class StorePetRequest extends FormRequest
             'date_of_birth' => 'required',
             'description' => 'required',
             'allergies' => 'required',
-            'photo' => 'required',
+            'photo.*' => 'mimes:jpg,jpeg,bmp,png,pdf,xlsx',
+            'photo' => 'max:5',
+
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            "photo.max" => "file can't be more than 5."
         ];
     }
 }

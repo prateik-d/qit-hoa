@@ -1,8 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\API\User;
+   
+use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use App\Http\Controllers\API\BaseController as BaseController;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Ammenity;
+use App\Models\AmmenityDocument;
+use App\Http\Requests\StoreAmmenityRequest;
 
 class AmmenityController extends BaseController
 {

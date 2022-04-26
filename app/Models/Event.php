@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\EventCategory;
+use App\Models\EventPhoto;
 use App\Models\EventLocation;
 
 class Event extends Model
@@ -47,5 +48,10 @@ class Event extends Model
     public function eventLocation()
     {
         return $this->belongsTo(EventLocation::class);
+    }
+
+    public function eventImages()
+    {
+        return $this->hasMany(EventPhoto::class);
     }
 }

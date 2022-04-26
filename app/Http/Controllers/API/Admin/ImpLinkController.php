@@ -120,10 +120,10 @@ class ImpLinkController extends BaseController
             $input = $request->except(['_method']);
             $impLink = ImpLink::findOrFail($id);
             if ($impLink) {
-                $updated = $impLink->fill($input)->save();
-                if ($updated) {
+                $update = $impLink->fill($input)->save();
+                if ($update) {
                     Log::info('Imp-link updated successfully for imp-link id: '.$id);
-                    return $this->sendResponse(new ImpLinkResource($impLink), 'Imp-link updated successfully.');
+                    return $this->sendResponse([], 'Imp-link updated successfully.');
                 } else {
                     return $this->sendError('Failed to update imp-link.');      
                 }

@@ -142,10 +142,10 @@ class UserController extends BaseController
                     $path = $file->storeAs('public/Members_profile_pic', $filename);
                     $input['profile_pic'] = $path;
                 }
-                $updated = $user->fill($input)->save();
-                if ($updated) {
+                $update = $user->fill($input)->save();
+                if ($update) {
                     Log::info('User updated for user id: '.$id);
-                    return $this->sendResponse(new UserResource($user), 'User updated successfully.');
+                    return $this->sendResponse([], 'User updated successfully.');
                 } else {
                     return $this->sendError('Failed to update user.');      
                 }

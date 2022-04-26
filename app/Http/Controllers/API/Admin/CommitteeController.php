@@ -91,26 +91,32 @@ class CommitteeController extends BaseController
      */
     public function fileUpload($folder, $input, $files, $committee)
     {
-        $allowedfileExtension=['pdf','jpg','png','xlsx'];
-        foreach ($files as $file) {      
-            $extension = $file->getClientOriginalExtension();
-            $check = in_array($extension,$allowedfileExtension);
-            if($check) {
-                foreach((array)$input as $mediaFiles) {
-                    $name = $mediaFiles->getClientOriginalName();
-                    $filename = $committee->id.'-'.$name;
-                    $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                    $ext  =  $mediaFiles->getClientOriginalExtension();
-                    //store image file into directory and db
-                    $committeePhoto = new CommitteePhoto();
-                    $committeePhoto->committee_id = $committee->id;
-                    $committeePhoto->file_path = $path;
-                    $committeePhoto->save();
+        try {
+            $allowedfileExtension=['pdf','jpg','png','xlsx'];
+            foreach ($files as $file) {      
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $committee->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $committeePhoto = new CommitteePhoto();
+                        $committeePhoto->committee_id = $committee->id;
+                        $committeePhoto->file_path = $path;
+                        $committeePhoto->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
                 }
-            } else {
-                return $this->sendError('invalid_file_format'); 
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
             }
-            return response()->json(['file_uploaded'], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to upload committee photos due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload committee photos.');
         }
     }
 
@@ -187,7 +193,7 @@ class CommitteeController extends BaseController
                         $this->fileUpload($folder, $input, $files, $committee);
                     }
                     Log::info('Committee updated successfully for committee id: '.$id);
-                    return $this->sendResponse(new CommitteeResource($committee), 'Committee updated successfully.');
+                    return $this->sendResponse([], 'Committee updated successfully.');
                 } else {
                     return $this->sendError('Failed to update committee.');     
                 }

@@ -27,7 +27,7 @@ class CreateEventsTable extends Migration
             $table->string('twitter_url');
             $table->string('no_of_rsvp');
             $table->unsignedBigInteger('organized_by');
-            $table->enum('status', ['new', 'live', 'updated', 'cancelled', 'archived', 'ended'])->default('new');
+            $table->enum('status', ['pending', 'cancelled', 'completed'])->default('pending');
             $table->timestamps();
         });
     }

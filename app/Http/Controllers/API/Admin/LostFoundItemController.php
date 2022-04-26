@@ -107,27 +107,33 @@ class LostFoundItemController extends BaseController
      */
     public function fileUpload($folder, $input, $files, $lostFoundItem)
     {
-        $allowedfileExtension=['pdf','jpg','jpeg','png','xlsx'];
-        foreach ($files as $file) {
-            $extension = $file->getClientOriginalExtension();
-            $check = in_array($extension,$allowedfileExtension);
-            if($check) {
-                foreach((array)$input as $mediaFiles) {
-                    $name = $mediaFiles->getClientOriginalName();
-                    $filename = $lostFoundItem->id.'-'.$name;
-                    $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                    $ext  =  $mediaFiles->getClientOriginalExtension();
-                    //store image file into directory and db
-                    $lostItemimages = new LostFoundItemImage();
-                    $lostItemimages->lost_found_item_id = $lostFoundItem->id;
-                    // $lostItemimages->file_type = $ext;
-                    $lostItemimages->file_path = $path;
-                    $lostItemimages->save();
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            foreach ($files as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $lostFoundItem->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $lostItemimages = new LostFoundItemImage();
+                        $lostItemimages->lost_found_item_id = $lostFoundItem->id;
+                        // $lostItemimages->file_type = $ext;
+                        $lostItemimages->file_path = $path;
+                        $lostItemimages->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
                 }
-            } else {
-                return $this->sendError('invalid_file_format'); 
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
             }
-            return response()->json(['file_uploaded'], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to upload lost-found-item images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload lost-found-item images.');
         }
     }
 
@@ -180,8 +186,8 @@ class LostFoundItemController extends BaseController
             $input = $request->except(['_method']);
             $lostFoundItem = LostFoundItem::findOrFail($id);
             if ($lostFoundItem) {
-                $updated = $lostFoundItem->fill($input)->save();
-                if ($updated) {
+                $update = $lostFoundItem->fill($input)->save();
+                if ($update) {
                     if ($request->hasFile('photo')) {
                         //Delete old images to upload new
                         if ($lostFoundItem->lostFoundItemImages()) {
@@ -199,7 +205,7 @@ class LostFoundItemController extends BaseController
                         $this->fileUpload($folder, $input, $files, $lostFoundItem);
                     }
                     Log::info('Item updated successfully for item id: '.$id);
-                    return $this->sendResponse($lostFoundItem, 'Item updated successfully.');
+                    return $this->sendResponse([], 'Item updated successfully.');
                 } else {
                     return $this->sendError('Failed to update item');     
                 }

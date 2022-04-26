@@ -26,8 +26,20 @@ class StoreACCRequest extends FormRequest
         return [
             'title' => 'required',
             'user_id' => 'required',
-            'neighbour_id' => 'required',
+            'neighbour_id' => 'required|max:4',
             'improvement_details' => 'required',
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            "neighbour_id.max" => "approval can be send up to 4 neighbours."
         ];
     }
 }

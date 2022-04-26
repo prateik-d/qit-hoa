@@ -113,26 +113,32 @@ class TicketController extends BaseController
      */
     public function fileUpload($folder, $input, $files, $ticket)
     {
-        $allowedfileExtension=['pdf','jpg','jpeg','png','xlsx'];
-        foreach ($files as $file) {
-            $extension = $file->getClientOriginalExtension();
-            $check = in_array($extension,$allowedfileExtension);
-            if($check) {
-                foreach((array)$input as $mediaFiles) {
-                    $name = $mediaFiles->getClientOriginalName();
-                    $filename = $ticket->id.'-'.$name;
-                    $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                    $ext  =  $mediaFiles->getClientOriginalExtension();
-                    //store image file into directory and db
-                    $ticketimages = new TicketImage();
-                    $ticketimages->ticket_id = $ticket->id;
-                    $ticketimages->img_file_path = $path;
-                    $ticketimages->save();
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            foreach ($files as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $ticket->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $ticketimages = new TicketImage();
+                        $ticketimages->ticket_id = $ticket->id;
+                        $ticketimages->img_file_path = $path;
+                        $ticketimages->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
                 }
-            } else {
-                return $this->sendError('invalid_file_format'); 
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
             }
-            return response()->json(['file_uploaded'], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to upload ticket images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload ticket images.');
         }
     }
 

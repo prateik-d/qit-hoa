@@ -120,7 +120,7 @@ class BreedController extends BaseController
                 $update = $breed->fill($input)->save();
                 if ($update) {
                     Log::info('Breed updated successfully for breed id: '.$id);
-                    return $this->sendResponse($breed, 'Breed updated successfully.');
+                    return $this->sendResponse([], 'Breed updated successfully.');
                 } else {
                     return $this->sendError('Failed to update breed.');
                 }

@@ -119,7 +119,7 @@ class StateController extends Controller
                 $update = $state->fill($input)->save();
                 if ($update) {
                     Log::info('State updated successfully for state id: '.$id);
-                    return $this->sendResponse($state, 'State updated successfully.');
+                    return $this->sendResponse([], 'State updated successfully.');
                 } else {
                     return $this->sendError('Failed to update state');      
                 }

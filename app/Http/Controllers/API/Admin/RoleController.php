@@ -118,10 +118,10 @@ class RoleController extends BaseController
             $input = $request->except(['_method']);
             $role = Role::findOrFail($id);
             if ($role) {
-                $updated = $role->fill($input)->save();
-                if ($updated) {
+                $update = $role->fill($input)->save();
+                if ($update) {
                     Log::info('Role updated successfully for role id: '.$id);
-                    return $this->sendResponse(new RoleResource($role), 'Role updated successfully.');
+                    return $this->sendResponse([], 'Role updated successfully.');
                 } else {
                     return $this->sendError('Failed to update role.');      
                 }

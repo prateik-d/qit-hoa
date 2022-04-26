@@ -1,10 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\User;
 
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Reservation;
+use App\Http\Requests\StoreReservationRequest;
 
-class ReservationController extends Controller
+class ReservationController extends BaseController
 {
     /**
      * Display a listing of the resource.

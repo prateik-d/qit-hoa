@@ -120,7 +120,7 @@ class ClassifiedCategoryController extends BaseController
                 $update = $classifiedCategory->fill($input)->save();
                 if ($update) {
                     Log::info('Classified category updated successfully for category id: '.$id);
-                    return $this->sendResponse($classifiedCategory, 'Classified category updated successfully.');
+                    return $this->sendResponse([], 'Classified category updated successfully.');
                 } else {
                     return $this->sendError('Failed to update classified category.');
                 }

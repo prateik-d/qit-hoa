@@ -46,8 +46,7 @@ class TicketController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to retrieve ticket data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve ticket data.');
-        }
-        
+        }   
     }
 
     /**
@@ -112,26 +111,32 @@ class TicketController extends BaseController
      */
     public function fileUpload($folder, $input, $files, $ticket)
     {
-        $allowedfileExtension=['pdf','jpg','jpeg','png','xlsx'];
-        foreach ($files as $file) {
-            $extension = $file->getClientOriginalExtension();
-            $check = in_array($extension,$allowedfileExtension);
-            if($check) {
-                foreach((array)$input as $mediaFiles) {
-                    $name = $mediaFiles->getClientOriginalName();
-                    $filename = $ticket->id.'-'.$name;
-                    $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                    $ext  =  $mediaFiles->getClientOriginalExtension();
-                    //store image file into directory and db
-                    $ticketimages = new TicketImage();
-                    $ticketimages->ticket_id = $ticket->id;
-                    $ticketimages->img_file_path = $path;
-                    $ticketimages->save();
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            foreach ($files as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $ticket->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $ticketimages = new TicketImage();
+                        $ticketimages->ticket_id = $ticket->id;
+                        $ticketimages->img_file_path = $path;
+                        $ticketimages->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
                 }
-            } else {
-                return $this->sendError('invalid_file_format'); 
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
             }
-            return response()->json(['file_uploaded'], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to upload ticket images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload ticket images.');
         }
     }
 
@@ -187,7 +192,7 @@ class TicketController extends BaseController
                 $update = $ticket->fill($input)->save();
                 if ($update) {
                     if ($request->hasFile('photo')) {
-                        //Delete old images to upload new
+                        // Delete old images to upload new
                         if ($ticket->ticketImages()) {
                             foreach ($ticket->ticketImages as $file) {
                                 if (file_exists(storage_path('app/'.$file->img_file_path))) { 
@@ -196,14 +201,14 @@ class TicketController extends BaseController
                             }
                             $ticket->ticketImages()->delete();
                         }
-                        //Add new images
+                        // Add new images
                         $folder = 'ticket_photos';
                         $input = $request->photo;
                         $files = $request->file('photo');
                         $this->fileUpload($folder, $input, $files, $ticket);
                     }
                     Log::info('Ticket updated successfully for ticket id: '.$id);
-                    return $this->sendResponse($ticket, 'Ticket updated successfully.');
+                    return $this->sendResponse([], 'Ticket updated successfully.');
                 } else {
                     return $this->sendError('Failed to update ticket');     
                 }

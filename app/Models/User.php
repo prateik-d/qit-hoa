@@ -15,6 +15,7 @@ use App\Models\LostFoundItem;
 use App\Models\Ticket;
 use App\Models\UserDocument;
 use App\Models\Vehicle;
+use App\Models\Voting;
 
 class User extends Authenticatable
 {
@@ -110,5 +111,10 @@ class User extends Authenticatable
     public function committees()
     {
         return $this->belongsToMany(Committee::class, CommitteeMember::class, 'user_id','committee_id')->withPivot('id', 'added_by')->withTimestamps();
+    }
+
+    public function votings()
+    {
+        return $this->belongsToMany(Voting::class, VotingNominee::class, 'user_id','voting_id')->withPivot('id', 'votes_received')->withTimestamps();
     }
 }

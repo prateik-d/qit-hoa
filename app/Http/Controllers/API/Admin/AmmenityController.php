@@ -82,28 +82,34 @@ class AmmenityController extends BaseController
      */
     public function fileUpload($folder, $fileInput, $files, $ammenity, $input)
     {
-        $allowedfileExtension=['pdf','jpg','jpeg','png','xlsx'];
-        foreach ($files as $file) {
-            $extension = $file->getClientOriginalExtension();
-            $check = in_array($extension,$allowedfileExtension);
-            if($check) {
-                foreach((array)$fileInput as $mediaFiles) {
-                    $name = $mediaFiles->getClientOriginalName();
-                    $filename = $ammenity->id.'-'.$name;
-                    $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                    $ext  =  $mediaFiles->getClientOriginalExtension();
-                    //store image file into directory and db
-                    $ammenityDocuments = new AmmenityDocument();
-                    $ammenityDocuments->ammenity_id = $ammenity->id;
-                    $ammenityDocuments->file_type = $input['document_type'];
-                    $ammenityDocuments->file_path = $path;
-                    $ammenityDocuments->status = 1;
-                    $ammenityDocuments->save();
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            foreach ($files as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if ($check) {
+                    foreach((array)$fileInput as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $ammenity->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store image file into directory and db
+                        $ammenityDocuments = new AmmenityDocument();
+                        $ammenityDocuments->ammenity_id = $ammenity->id;
+                        $ammenityDocuments->file_type = $input['document_type'];
+                        $ammenityDocuments->file_path = $path;
+                        $ammenityDocuments->status = 1;
+                        $ammenityDocuments->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
                 }
-            } else {
-                return $this->sendError('invalid_file_format'); 
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
             }
-            return response()->json(['file_uploaded'], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to upload ammenity documents due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload ammenity documents.');
         }
     }
 
@@ -175,7 +181,7 @@ class AmmenityController extends BaseController
                         $this->fileUpload($folder, $fileInput, $files, $ammenity, $input);
                     }
                     Log::info('Ammenity updated successfully for ammenity id: '.$id);
-                    return $this->sendResponse(new AmmenityResource($ammenity), 'Ammenity updated successfully.');
+                    return $this->sendResponse([], 'Ammenity updated successfully.');
                 } else {
                     return $this->sendError('Failed to update ammenity.');     
                 }
