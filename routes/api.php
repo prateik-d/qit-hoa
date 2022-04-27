@@ -24,6 +24,9 @@ use App\Http\Controllers\API\Admin\ClassifiedController;
 use App\Http\Controllers\API\Admin\ClassifiedConditionController;
 use App\Http\Controllers\API\Admin\ClassifiedCategoryController;
 use App\Http\Controllers\API\Admin\DocumentCategoryController;
+use App\Http\Controllers\API\Admin\VotingController;
+use App\Http\Controllers\API\Admin\VotingCategoryController;
+use App\Http\Controllers\API\Admin\TicketCategoryController;
 
 //User controllers
 use App\Http\Controllers\API\User\RegisterController;
@@ -40,9 +43,8 @@ use App\Http\Controllers\API\User\DocumentController as UserDocumentController;
 use App\Http\Controllers\API\User\FaqController as UserFaqController;
 use App\Http\Controllers\API\User\ImpLinkController as UserImpLinkController;
 use App\Http\Controllers\API\User\ClassifiedController as UserClassifiedController;
-use App\Http\Controllers\API\User\ClassifiedConditionController as UserClassifiedConditionController;
-use App\Http\Controllers\API\User\ClassifiedCategoryController as UserClassifiedCategoryController;
-use App\Http\Controllers\API\User\DocumentCategoryController as UserDocumentCategoryController;
+use App\Http\Controllers\API\User\VotingController as UserVotingController;
+use App\Http\Controllers\API\User\DashboardController as UserDashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -89,12 +91,10 @@ Route::middleware('auth:api')->group( function () {
     Route::resource('user-imp-links', UserImpLinkController::class);
     // Classified API Routes
     Route::resource('user-classifieds', UserClassifiedController::class);
-    // ClassifiedCondition API Routes
-    Route::resource('user-classified-conditions', UserClassifiedConditionController::class);
-    // ClassifiedCategory API Routes
-    Route::resource('user-classified-categories', UserClassifiedCategoryController::class);
-    // DocumentCategory API Routes
-    Route::resource('user-document-categories', UserDocumentCategoryController::class);
+    // Voting API Routes
+    Route::resource('user-votings', UserVotingController::class);
+    // Dashboard API Routes
+    Route::resource('user-dashboard', UserDashboardController::class);
 });
 
 //To access admin routes
@@ -122,11 +122,15 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // Ticket API Routes
     Route::resource('tickets', TicketController::class);
     Route::put('/close-ticket/{id}', [TicketController::class, 'closeTicket']);
+    // VotingCategory API Routes
+    Route::resource('ticket-categories', TicketCategoryController::class);
     // Event API Routes
     Route::resource('events', EventController::class);
     Route::get('/archived-event', [EventController::class, 'archivedEvent']);
     // Vehicle API Routes
     Route::resource('vehicles', VehicleController::class);
+    // This should be under 'auth' middleware group
+    Route::post('/mark-as-read', [VehicleController::class, 'markNotification'])->name('markNotification');
     // Ammenity API Routes
     Route::resource('ammenities', AmmenityController::class);
     // Committee API Routes
@@ -147,4 +151,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('classified-categories', ClassifiedCategoryController::class);
     // DocumentCategory API Routes
     Route::resource('document-categories', DocumentCategoryController::class);
+    // VotingCategory API Routes
+    Route::resource('voting-categories', VotingCategoryController::class);
+    // Voting API Routes
+    Route::resource('votings', VotingController::class);
 });

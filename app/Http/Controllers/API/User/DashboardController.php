@@ -7,11 +7,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Classified;
-use App\Models\ClassifiedImage;
-use App\Http\Requests\StoreClassifiedRequest;
+use App\Models\AccRequest;
+use App\Models\AccDocument;
+use App\Models\Ticket;
+use App\Models\TicketCategory;
+use App\Models\TicketImage;
 
-class ClassifiedController extends Controller
+class DashboardController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -21,25 +23,28 @@ class ClassifiedController extends Controller
     public function index(Request $request)
     {
         try {
-            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->get();
+            $user = Auth::guard('api')->user();
 
-            $classified = Classified::where('title', 'LIKE', '%'.$request->get('item'). '%')
-                ->where('classified_category_id', 'LIKE' , '%'.$request->get('category').'%')
-                ->where('posted_by', 'LIKE' , '%'.$request->get('posted_by').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
+            $accRequest = AccRequest::whereHas('users', function ($query) use($request, $user) {
+                $query->where('user_id', $user->id)->where('title', 'LIKE', '%'.$request->get('title'). '%')
+                ->where('acc_requests.created_at', 'LIKE' , '%'.$request->get('date').'%')
+                ->where('status', 'LIKE' , '%'.$request->get('status').'%');
+            })->count();
 
-            if (count($classified)) {
-                Log::info('Classified item displayed successfully.');
-                return $this->sendResponse([$categories, $classified], 'Classified item retrieved successfully.');
-            } else {
-                return $this->sendError('No data found for classified item.');
-            }
+            $ticket = Ticket::with('user', 'ticketImages', 'ticketCategory')->where('status', 'open')->get();
+
+            $violations = $user->violations->count();
+
+            Log::info('User dashboard data retrieved successfully.');
+            return $this->sendResponse(['accRequest' => $accRequest, 'ticket' => $ticket, 'violations' => $violations], 'User dashboard data retrieved successfully.');
+        
         } catch (Exception $e) {
-            Log::error('Failed to retrieve classified item due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve classified item.');
+            Log::error('Failed to retrieve user dashboard data data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve user dashboard data data.');
         }
     }
 
+    
     /**
      * Show the form for creating a new resource.
      *

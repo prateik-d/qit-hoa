@@ -1,17 +1,18 @@
 <?php
 
 namespace App\Http\Controllers\API\User;
-   
+
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Classified;
-use App\Models\ClassifiedImage;
-use App\Http\Requests\StoreClassifiedRequest;
+use App\Models\Voting;
+use App\Models\VotingCategory;
+use App\Models\VotingNominee;
+use App\Http\Requests\StoreVotingRequest;
 
-class ClassifiedController extends Controller
+class VotingController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -21,22 +22,30 @@ class ClassifiedController extends Controller
     public function index(Request $request)
     {
         try {
-            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->get();
+            $votingCategories = VotingCategory::orderBy('title', 'ASC')
+                                ->get();
 
-            $classified = Classified::where('title', 'LIKE', '%'.$request->get('item'). '%')
-                ->where('classified_category_id', 'LIKE' , '%'.$request->get('category').'%')
-                ->where('posted_by', 'LIKE' , '%'.$request->get('posted_by').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
+            $voting = Voting::with('votingCategory')
+            ->where('year', 'LIKE', '%'.$request->get('year'). '%')
+            ->where('status', 'LIKE', '%'.$request->get('status'). '%');
+    
+            $voting = $voting->whereHas('votingCategory', function($query) use($request) {
+                $query->where('title', 'LIKE', '%'.$request->get('title'). '%');
+            })->get();
 
-            if (count($classified)) {
-                Log::info('Classified item displayed successfully.');
-                return $this->sendResponse([$categories, $classified], 'Classified item retrieved successfully.');
+            if (count($votingCategories)) {
+                if (count($voting)) {
+                    Log::info('Voting data displayed successfully.');
+                    return $this->sendResponse([$votingCategories, $voting], 'Voting data retrieved successfully.');
+                } else {
+                    return $this->sendError('No data found for voting');
+                }
             } else {
-                return $this->sendError('No data found for classified item.');
+                return $this->sendError('No data found for categories');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve classified item due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve classified item.');
+            Log::error('Failed to retrieve voting data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve voting data.');
         }
     }
 

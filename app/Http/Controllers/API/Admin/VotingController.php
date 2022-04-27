@@ -17,16 +17,18 @@ class VotingController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $votingCategories = VotingCategory::where('status', 1)
-                                ->orderBy('category', 'ASC')
-                                ->get();
+            $votingCategories = VotingCategory::orderBy('title', 'ASC')->get();
 
-            $voting = Voting::where('title', 'LIKE', '%'.$request->get('title'). '%')
-                        ->where('year', 'LIKE', '%'.$request->get('year'). '%')
-                        ->where('status', 'LIKE', '%'.$request->get('status'). '%')->get();
+            $voting = Voting::with('votingCategory')
+                    ->where('year', 'LIKE', '%'.$request->get('year'). '%')
+                    ->where('status', 'LIKE', '%'.$request->get('status'). '%');
+            
+            $voting = $voting->whereHas('votingCategory', function($query) use($request) {
+                $query->where('title', 'LIKE', '%'.$request->get('title'). '%');
+            })->get();
 
             if (count($votingCategories)) {
                 if (count($voting)) {
@@ -51,7 +53,20 @@ class VotingController extends BaseController
      */
     public function create()
     {
-        //
+        try {
+            $votingCategories = VotingCategory::orderBy('category', 'ASC')
+                                ->get();
+
+            if (count($votingCategories)) {
+                Log::info('Voting categories data displayed successfully.');
+                return $this->sendResponse($votingCategories, 'Voting categories data retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for voting categories.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve voting categories due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve voting categories.');
+        }
     }
 
     /**
@@ -60,9 +75,26 @@ class VotingController extends BaseController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreVotingRequest $request)
     {
-        //
+        try {
+            $input = $request->all();
+            $input['added_by'] = Auth::guard('api')->user()->id;
+            $voting = Voting::create($input);
+            $nominees = $input['nominee'];
+            if (count($nominees)) {
+                $voting->nominees()->attach($nominees);
+            }
+            if ($voting) {
+                Log::info('Voting created successfully.');
+                return $this->sendResponse($voting, 'Voting created successfully.');
+            } else {
+                return $this->sendError('Failed to create voting.');     
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to create voting due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to create voting.');
+        }
     }
 
     /**
@@ -73,7 +105,14 @@ class VotingController extends BaseController
      */
     public function show($id)
     {
-        //
+        try {
+            $voting = Voting::findOrFail($id);
+            Log::info('Showing voting data for voting id: '.$id);
+            return $this->sendResponse($voting, 'Voting retrieved successfully.');
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve voting data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve voting data, voting not found.');
+        }
     }
 
     /**
@@ -84,7 +123,14 @@ class VotingController extends BaseController
      */
     public function edit($id)
     {
-        //
+        try {
+            $voting = Voting::findOrFail($id);
+            Log::info('Edit voting data for voting id: '.$id);
+            return $this->sendResponse($voting, 'Voting retrieved successfully.');
+        } catch (Exception $e) {
+            Log::error('Failed to edit voting data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to edit voting data, voting not found.');
+        }
     }
 
     /**
@@ -94,9 +140,30 @@ class VotingController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreVotingRequest $request, $id)
     {
-        //
+        try {
+            $input = $request->except(['_method']);
+            $voting = Voting::findOrFail($id);
+            if ($voting) {
+                $update = $voting->fill($input)->save();
+                if ($update) {
+                    $nominees = $input['nominee'];
+                    if (count($nominees)) {
+                        $voting->nominees()->sync($nominees);
+                    }
+                    Log::info('Voting updated successfully.');
+                    return $this->sendResponse($voting, 'Voting updated successfully.');
+                } else {
+                    return $this->sendError('Failed to update voting.');     
+                }
+            } else {
+                return $this->sendError('Voting data not found.');     
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to update voting due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to update voting.');
+        }
     }
 
     /**
@@ -107,6 +174,19 @@ class VotingController extends BaseController
      */
     public function destroy($id)
     {
-        //
+        try {
+            $voting = Voting::findOrFail($id);
+            if ($voting) {
+                $votingNominee = $voting->nomminees()->detach();
+                $voting->delete();
+                Log::info('Voting deleted successfully for voting id: '.$id);
+                return $this->sendResponse([], 'Voting deleted successfully.');
+            } else {
+                return $this->sendError('Voting not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete voting due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete voting.');
+        }
     }
 }

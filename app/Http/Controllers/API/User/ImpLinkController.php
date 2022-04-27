@@ -7,36 +7,33 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Classified;
-use App\Models\ClassifiedImage;
-use App\Http\Requests\StoreClassifiedRequest;
+use App\Models\ImpLink;
+use App\Http\Requests\StoreImpLinkRequest;
+use App\Http\Resources\ImpLink as ImpLinkResource;
 
-class ClassifiedController extends Controller
+class ImpLinkController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->get();
+            $impLink = ImpLink::where('description', 'LIKE', '%'.$request->get('description'). '%')
+            ->where('url', 'LIKE' , '%'.$request->get('url').'%')
+            ->get();
 
-            $classified = Classified::where('title', 'LIKE', '%'.$request->get('item'). '%')
-                ->where('classified_category_id', 'LIKE' , '%'.$request->get('category').'%')
-                ->where('posted_by', 'LIKE' , '%'.$request->get('posted_by').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
-
-            if (count($classified)) {
-                Log::info('Classified item displayed successfully.');
-                return $this->sendResponse([$categories, $classified], 'Classified item retrieved successfully.');
+            if (count($impLink)) {
+                Log::info('Imp-link data displayed successfully.');
+                return $this->sendResponse(ImpLinkResource::collection($impLink), 'Imp-link data retrieved successfully.');
             } else {
-                return $this->sendError('No data found for classified item.');
+                return $this->sendError('No data found for imp-link.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve classified item due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve classified item.');
+            Log::error('Failed to retrieve imp-link data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve imp-link data.');
         }
     }
 

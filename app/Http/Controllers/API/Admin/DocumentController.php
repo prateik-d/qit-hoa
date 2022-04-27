@@ -46,7 +46,7 @@ class DocumentController extends BaseController
     public function create()
     {
         try {
-            $categories = DocumentCategory::where('status',1)->orderBy('title','asc')->pluck('title', 'id');
+            $categories = DocumentCategory::where('status', 1)->orderBy('title','asc')->pluck('title', 'id');
             Log::info('Document categories displayed successfully.');
             return $this->sendResponse($categories, 'Document categories retrieved successfully.');
         } catch (Exception $e) {

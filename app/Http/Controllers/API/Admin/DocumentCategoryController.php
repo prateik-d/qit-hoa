@@ -21,10 +21,10 @@ class DocumentCategoryController extends BaseController
     public function index(Request $request)
     {
         try {
-            $DocumentCategories = DocumentCategory::all();
-            if (count($DocumentCategories)) {
+            $documentCategories = DocumentCategory::all();
+            if (count($documentCategories)) {
                 Log::info('Document categories data displayed successfully.');
-                return $this->sendResponse($DocumentCategories, 'Document categories data retrieved successfully.');
+                return $this->sendResponse($documentCategories, 'Document categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for document categories.');
             }
@@ -55,10 +55,10 @@ class DocumentCategoryController extends BaseController
         try {
             $input = $request->all();
             $input['added_by'] = Auth::guard('api')->user()->id;
-            $DocumentCategory = DocumentCategory::create($input);
-            if ($DocumentCategory) {
+            $documentCategory = DocumentCategory::create($input);
+            if ($documentCategory) {
                 Log::info('Document category added successfully.');
-                return $this->sendResponse($DocumentCategory, 'Document category added successfully.');
+                return $this->sendResponse($documentCategory, 'Document category added successfully.');
             } else {
                 return $this->sendError('Failed to add document category.');     
             }
@@ -77,9 +77,9 @@ class DocumentCategoryController extends BaseController
     public function show($id)
     {
         try {
-            $DocumentCategory = DocumentCategory::findOrFail($id);
+            $documentCategory = DocumentCategory::findOrFail($id);
             Log::info('Showing document category for category id: '.$id);
-            return $this->sendResponse($DocumentCategory, 'Document category retrieved successfully.');
+            return $this->sendResponse($documentCategory, 'Document category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve document category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve document category data, category not found.');
@@ -95,9 +95,9 @@ class DocumentCategoryController extends BaseController
     public function edit($id)
     {
         try {
-            $DocumentCategory = DocumentCategory::findOrFail($id);
+            $documentCategory = DocumentCategory::findOrFail($id);
             Log::info('Showing document category for category id: '.$id);
-            return $this->sendResponse($DocumentCategory, 'Document category retrieved successfully.');
+            return $this->sendResponse($documentCategory, 'Document category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit document category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit document category data, category not found.');
@@ -115,9 +115,9 @@ class DocumentCategoryController extends BaseController
     {
         try {
             $input = $request->except(['_method']);
-            $DocumentCategory = DocumentCategory::findOrFail($id);
-            if ($DocumentCategory) {
-                $update = $DocumentCategory->fill($input)->save();
+            $documentCategory = DocumentCategory::findOrFail($id);
+            if ($documentCategory) {
+                $update = $documentCategory->fill($input)->save();
                 if ($update) {
                     Log::info('Document category updated successfully for category id: '.$id);
                     return $this->sendResponse([], 'Document category updated successfully.');
@@ -142,9 +142,9 @@ class DocumentCategoryController extends BaseController
     public function destroy($id)
     {
         try {
-            $DocumentCategory = DocumentCategory::findOrFail($id);
-            if ($DocumentCategory) {
-                $DocumentCategory->delete();
+            $documentCategory = DocumentCategory::findOrFail($id);
+            if ($documentCategory) {
+                $documentCategory->delete();
                 Log::info('Document category deleted successfully for category id: '.$id);
                 return $this->sendResponse([], 'Document category deleted successfully.');
             } else {

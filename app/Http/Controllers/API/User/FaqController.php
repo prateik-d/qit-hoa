@@ -7,36 +7,29 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Classified;
-use App\Models\ClassifiedImage;
-use App\Http\Requests\StoreClassifiedRequest;
+use App\Models\Faq;
+use App\Http\Resources\Faq as FaqResource;
 
-class ClassifiedController extends Controller
+class FaqController extends BaseController
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->get();
-
-            $classified = Classified::where('title', 'LIKE', '%'.$request->get('item'). '%')
-                ->where('classified_category_id', 'LIKE' , '%'.$request->get('category').'%')
-                ->where('posted_by', 'LIKE' , '%'.$request->get('posted_by').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
-
-            if (count($classified)) {
-                Log::info('Classified item displayed successfully.');
-                return $this->sendResponse([$categories, $classified], 'Classified item retrieved successfully.');
+            $faq = Faq::all();
+            if (count($faq)) {
+                Log::info('Faq data displayed successfully.');
+                return $this->sendResponse(FaqResource::collection($faq), 'Faq data retrieved successfully.');
             } else {
-                return $this->sendError('No data found for classified item.');
+                return $this->sendError('No data found for faq.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve classified item due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve classified item.');
+            Log::error('Failed to retrieve faq data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve faq data.');
         }
     }
 

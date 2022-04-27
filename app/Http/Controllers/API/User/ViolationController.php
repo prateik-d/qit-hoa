@@ -5,38 +5,33 @@ namespace App\Http\Controllers\API\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Classified;
-use App\Models\ClassifiedImage;
-use App\Http\Requests\StoreClassifiedRequest;
+use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Violation;
+use App\Http\Resources\Violation as ViolationResource;
+use App\Http\Requests\StoreViolationRequest;
 
-class ClassifiedController extends Controller
+class ViolationController extends BaseController
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->get();
+            $violations = Auth::guard('api')->user()->violations;
 
-            $classified = Classified::where('title', 'LIKE', '%'.$request->get('item'). '%')
-                ->where('classified_category_id', 'LIKE' , '%'.$request->get('category').'%')
-                ->where('posted_by', 'LIKE' , '%'.$request->get('posted_by').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
-
-            if (count($classified)) {
-                Log::info('Classified item displayed successfully.');
-                return $this->sendResponse([$categories, $classified], 'Classified item retrieved successfully.');
+            if (count($violations)) {
+                Log::info('Violation data displayed successfully.');
+                return $this->sendResponse($violations, 'Violation data retrieved successfully.');
             } else {
-                return $this->sendError('No data found for classified item.');
+                return response()->json(['Result' => 'No Data not found'], 404);
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve classified item due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve classified item.');
+            Log::error('Failed to retrieve violations data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve violations data.');
         }
     }
 

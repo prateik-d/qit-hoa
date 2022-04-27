@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\VotingCategory;
 use App\Models\User;
+use App\Models\VotingNominee;
 
 class Voting extends Model
 {
@@ -33,8 +34,8 @@ class Voting extends Model
         return $this->belongsTo(VotingCategory::class);
     }
 
-    public function users()
+    public function nominees()
     {
-        return $this->belongsToMany(User::class, VotingNominee::class, 'voting_id', 'user_id');
+        return $this->belongsToMany(User::class, VotingNominee::class, 'voting_id', 'user_id')->withTimestamps();
     }
 }
