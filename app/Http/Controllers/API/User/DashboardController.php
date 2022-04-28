@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\User;
    
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use App\Models\AccDocument;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketImage;
+use App\Models\Event;
 
 class DashboardController extends BaseController
 {
@@ -31,16 +33,20 @@ class DashboardController extends BaseController
                 ->where('status', 'LIKE' , '%'.$request->get('status').'%');
             })->count();
 
-            $ticket = Ticket::with('user', 'ticketImages', 'ticketCategory')->where('status', 'open')->get();
+            $ticket = Ticket::where('status', 'open')->count();
 
-            $violations = $user->violations->count();
+			$openViolations =  $user->violations->where('status', 'open')->count();
+            $myViolations = $user->violations->count();
+
+			$currentDateTime = Carbon::now()->toDateTimeString();
+			$upcomingEvents = Event::where('start_datetime', '>', $currentDateTime)->where('status', '!=', 'cancelled')->count();
 
             Log::info('User dashboard data retrieved successfully.');
-            return $this->sendResponse(['accRequest' => $accRequest, 'ticket' => $ticket, 'violations' => $violations], 'User dashboard data retrieved successfully.');
+            return $this->sendResponse(['accRequest' => $accRequest, 'ticket' => $ticket, 'myViolations' => $myViolations, 'openViolations' => $openViolations, 'upcomingEvents' => $upcomingEvents], 'User dashboard data retrieved successfully.');
         
         } catch (Exception $e) {
             Log::error('Failed to retrieve user dashboard data data due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve user dashboard data data.');
+            return $this->sendError('Operation failed to retrieve user dashboard data.');
         }
     }
 

@@ -29,7 +29,19 @@ class ReservationController extends BaseController
      */
     public function create()
     {
-        //
+        try {
+            $ammenities = Ammenity::where('status',1)->orderBy('title','asc')->get();
+
+            if (count($ammenities)) {
+                Log::info('Ammenities data displayed successfully.');
+                return $this->sendResponse($categories, 'Ammenities data retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for ammenities.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve ammenities due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve ammenities.');
+        }
     }
 
     /**

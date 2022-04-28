@@ -11,6 +11,7 @@ use App\Http\Controllers\API\Admin\PetTypeController;
 use App\Http\Controllers\API\Admin\RoleController;
 use App\Http\Controllers\API\Admin\UserController;
 use App\Http\Controllers\API\Admin\ViolationController;
+use App\Http\Controllers\API\Admin\ViolationTypeController;
 use App\Http\Controllers\API\Admin\LostFoundItemController;
 use App\Http\Controllers\API\Admin\TicketController;
 use App\Http\Controllers\API\Admin\VehicleController;
@@ -70,6 +71,8 @@ Route::middleware('auth:api')->group( function () {
     // Event API Routes
     Route::resource('user-events', UserEventController::class);
     Route::get('/archived-event', [UserEventController::class, 'archivedEvent']);
+    Route::get('/upcoming-event', [UserEventController::class, 'upcomingEvent']);
+    Route::put('/cancel-event/{id}', [UserEventController::class, 'cancelEvent']);
     // LostFoundItem API Routes
     Route::resource('user-lost-found-items', UserLostFoundItemController::class);
     // Ticket API Routes
@@ -115,6 +118,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('roles', RoleController::class);
     // Violation API Routes
     Route::resource('violations', ViolationController::class);
+    // Violation Type API Routes
+    Route::resource('violation-types', ViolationTypeController::class);
     // LostFoundItem API Routes
     Route::resource('lost-found-items', LostFoundItemController::class);
     // Members API Routes
@@ -127,6 +132,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // Event API Routes
     Route::resource('events', EventController::class);
     Route::get('/archived-event', [EventController::class, 'archivedEvent']);
+    Route::get('/upcoming-event', [EventController::class, 'upcomingEvent']);
+    Route::put('/cancel-event/{id}', [EventController::class, 'cancelEvent']);
     // Vehicle API Routes
     Route::resource('vehicles', VehicleController::class);
     // This should be under 'auth' middleware group

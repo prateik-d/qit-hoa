@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Violation;
+use App\Models\ViolationType;
+use App\Models\ViolationDocument;
 use App\Http\Resources\Violation as ViolationResource;
 use App\Http\Requests\StoreViolationRequest;
 
@@ -18,10 +20,19 @@ class ViolationController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $violations = Violation::all();
+            $violations = Violation::with('violationType')
+                        ->where('status', 'open')
+                        ->where('violation_type', 'LIKE', '%'.$request->get('type'). '%')
+                        ->where('date', 'LIKE', '%'.$request->get('date'). '%')
+                        ->where('status', 'LIKE', '%'.$request->get('status'). '%');
+
+            $violations = $violations->whereHas('violationType', function($query) use($request) {
+                        $query->where('type', 'LIKE' , '%'.$request->get('title').'%');
+                        })->get();
+                
             if (count($violations)) {
                 Log::info('Violations data displayed successfully.');
                 return $this->sendResponse(ViolationResource::collection($violations), 'Violations data retrieved successfully.');
@@ -57,6 +68,12 @@ class ViolationController extends BaseController
             $input['approved_by'] = Auth::guard('api')->user()->id;
             $violation = Violation::create($input);
             if ($violation) {
+                if ($request->hasFile('documents')) {
+                    $folder = 'violation_documents';
+                    $input = $request->documents;
+                    $files = $request->file('documents');
+                    $this->fileUpload($folder, $input, $files, $violation);
+                }
                 Log::info('Violation added successfully.');
                 return $this->sendResponse(new ViolationResource($violation), 'Violation added successfully.');
             } else {
@@ -65,6 +82,44 @@ class ViolationController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to add violation due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to add violation.');
+        }
+    }
+
+    /**
+     * File upload for ticket.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function fileUpload($folder, $input, $files, $violation)
+    {
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            foreach ($files as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $check = in_array($extension,$allowedfileExtension);
+                if ($check) {
+                    foreach((array)$input as $mediaFiles) {
+                        $name = $mediaFiles->getClientOriginalName();
+                        $filename = $violation->id.'-'.$name;
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $ext  =  $mediaFiles->getClientOriginalExtension();
+                        //store document file into directory and db
+                        $violationDocuments = new ViolationDocument();
+                        $violationDocuments->violation_id = $violation->id;
+                        $violationDocuments->file_type = $ext;
+                        $violationDocuments->file_path = $path;
+                        $violationDocuments->save();
+                    }
+                } else {
+                    return $this->sendError('invalid_file_format'); 
+                }
+                Log::info('File uploaded successfully.');
+                return response()->json(['file uploaded'], 200);
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to upload ticket images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload ticket images.');
         }
     }
 
@@ -119,6 +174,22 @@ class ViolationController extends BaseController
             if ($violation) {
                 $update = $violation->fill($input)->save();
                 if ($update) {
+                    if ($request->hasFile('documents')) {
+                        // Delete old documents to upload new
+                        if ($violation->violationDocuments()) {
+                            foreach ($violation->violationDocuments as $file) {
+                                if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                    unlink(storage_path('app/'.$file->file_path));
+                                }
+                            }
+                            $violation->violationDocuments()->delete();
+                        }
+                        // Add new document
+                        $folder = 'violation_documents';
+                        $fileInput = $request->documents;
+                        $files = $request->file('documents');
+                        $this->fileUpload($folder, $input, $files, $violations);
+                    }
                     Log::info('Violation updated successfully for violation id: '.$id);
                     return $this->sendResponse([], 'Violation updated successfully.');
                 } else {
@@ -144,6 +215,15 @@ class ViolationController extends BaseController
         try {
             $violation = Violation::findOrFail($id);
             if ($violation) {
+                // Delete old documents to upload new
+                if ($violation->violationDocuments()) {
+                    foreach ($violation->violationDocuments as $file) {
+                        if (file_exists(storage_path('app/'.$file->file_path))) { 
+                            unlink(storage_path('app/'.$file->file_path));
+                        }
+                    }
+                    $violation->violationDocuments()->delete();
+                }
                 if ($violation->delete()) {
                     Log::info('Violation deleted successfully for pet id: '.$id);
                     return $this->sendResponse([], 'Violation deleted successfully.');

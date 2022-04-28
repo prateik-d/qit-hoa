@@ -18,16 +18,24 @@ class ViolationController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $violations = Auth::guard('api')->user()->violations;
+            $violations = Violation::with('violationType')
+						->where('status', 'open')
+                        ->where('violation_type', 'LIKE', '%'.$request->get('type'). '%')
+                        ->where('date', 'LIKE', '%'.$request->get('date'). '%')
+                        ->where('status', 'LIKE', '%'.$request->get('status'). '%');
 
+            $violations = $violations->whereHas('violationType', function($query) use($request) {
+                        $query->where('type', 'LIKE' , '%'.$request->get('title').'%');
+                        })->get();
+                
             if (count($violations)) {
-                Log::info('Violation data displayed successfully.');
-                return $this->sendResponse($violations, 'Violation data retrieved successfully.');
+                Log::info('Violations data displayed successfully.');
+                return $this->sendResponse(ViolationResource::collection($violations), 'Violations data retrieved successfully.');
             } else {
-                return response()->json(['Result' => 'No Data not found'], 404);
+                return $this->sendError('No data found for violations');
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve violations data due to occurance of this exception'.'-'. $e->getMessage());
@@ -64,7 +72,14 @@ class ViolationController extends BaseController
      */
     public function show($id)
     {
-        //
+        try {
+            $violation = Violation::findOrFail($id);
+            Log::info('Showing violation data for violation id: '.$id);
+            return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve violation data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve violation data, violation not found.');
+        }
     }
 
     /**
@@ -75,7 +90,14 @@ class ViolationController extends BaseController
      */
     public function edit($id)
     {
-        //
+        try {
+            $violation = Violation::findOrFail($id);
+            Log::info('Edit violation data for violation id: '.$id);
+            return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+        } catch (Exception $e) {
+            Log::error('Failed to edit violation data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to edit violation data, violation not found.');
+        }
     }
 
     /**

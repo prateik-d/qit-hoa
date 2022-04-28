@@ -22,7 +22,7 @@ class PetTypeController extends BaseController
     {
         try {
             $petType = PetType::all();
-            if (count($faq)) {
+            if (count($petType)) {
                 Log::info('Pet-type data displayed successfully.');
                 return $this->sendResponse(PetTypeResource::collection($petType), 'Pet-type data retrieved successfully.');
             } else {
