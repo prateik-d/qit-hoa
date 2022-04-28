@@ -42,9 +42,17 @@ class NewVehicleNotification extends Notification
     public function toArray($notifiable)
     {
         return [
-            'first_name' => $this->vehicle->first_name,
-            'last_name' => $this->vehicle->last_name,
-            'email' => $this->vehicle->license_plate_no,
+            'vehicle_id' => $this->vehicle->id,
+            'owner_id' => $this->vehicle->owner_id,
+            'owned_by' => $this->vehicle->owned_by,
+            'vehicle_make_id' => $this->vehicle->vehicle_make_id,
+            'vehicle_model_id'  => $this->vehicle->vehicle_model_id,
+            'vehicle_color_id'  => $this->vehicle->vehicle_color_id,
+            'license_plate_no'  => $this->vehicle->license_plate_no,
+            'toll_tag_no'  => $this->vehicle->toll_tag_no,
+            'access_toll_tags_needed'  => $this->vehicle->access_toll_tags_needed,
+            'stickers_needed'  => $this->vehicle->stickers_needed,
+            'application_date'  => $this->vehicle->application_date
         ];
     }
 }

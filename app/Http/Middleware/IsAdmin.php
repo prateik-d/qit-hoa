@@ -24,7 +24,6 @@ class IsAdmin
                     return $next($request);
                 }
                 else {
-                    // return redirect('/home');
                     $message = ["message" => "Permission Denied"];
                     return response($message, 401);
                 }

@@ -16,8 +16,7 @@ class ViolationType extends Model
      * @var array
      */
     protected $fillable = [
-        'title',
-        'added_by'
+        'type'
     ];
 
     public function violations()

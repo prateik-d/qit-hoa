@@ -35,6 +35,11 @@ class VehicleController extends BaseController
         }
     }
 
+    /**
+     * Mark notification as read.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function markNotification(Request $request)
     {
         try {

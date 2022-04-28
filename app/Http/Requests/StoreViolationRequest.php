@@ -25,11 +25,9 @@ class StoreViolationRequest extends FormRequest
     {
         return [
             'user_id'=> 'required',
-            'approved_by'=> 'nullable',
-            'violation_type'=> 'required',
+            'violation_type_id'=> 'required',
             'description'=> 'required',
-            'date'=> 'required',
-            'approved_on'=> 'required',
+            'violation_date'=> 'required',
             'documents.*' => 'mimes:jpg,jpeg,bmp,png,pdf,xlsx',
             'documents' => 'max:5',
         ];

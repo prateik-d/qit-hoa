@@ -11,7 +11,7 @@ class Authenticate extends Middleware
     public function handle($request, Closure $next, ...$guards)
     {
         $token = $request->bearerToken();
-        if($token) {
+        if ($token) {
             if(Auth::guard('api')->check() && Auth::guard('api')->user()) {
                 // $user = Auth::guard('api')->user();
                 return $next($request);

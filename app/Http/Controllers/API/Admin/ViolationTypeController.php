@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\ViolationType;
 use App\Http\Requests\StoreViolationTypeRequest;
+use App\Http\Resources\ViolationType as ViolationTypeResource;
 
 class ViolationTypeController extends BaseController
 {

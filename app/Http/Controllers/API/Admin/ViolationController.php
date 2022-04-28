@@ -12,6 +12,9 @@ use App\Models\ViolationType;
 use App\Models\ViolationDocument;
 use App\Http\Resources\Violation as ViolationResource;
 use App\Http\Requests\StoreViolationRequest;
+use App\Models\User;
+use Notification;
+use App\Notifications\ViolationCloseRequestNotification;
 
 class ViolationController extends BaseController
 {
@@ -25,13 +28,10 @@ class ViolationController extends BaseController
         try {
             $violations = Violation::with('violationType')
                         ->where('status', 'open')
-                        ->where('violation_type', 'LIKE', '%'.$request->get('type'). '%')
-                        ->where('date', 'LIKE', '%'.$request->get('date'). '%')
-                        ->where('status', 'LIKE', '%'.$request->get('status'). '%');
-
-            $violations = $violations->whereHas('violationType', function($query) use($request) {
-                        $query->where('type', 'LIKE' , '%'.$request->get('title').'%');
-                        })->get();
+                        ->where('description', 'LIKE', '%'.$request->get('title'). '%')
+                        ->where('violation_date', 'LIKE', '%'.$request->get('date'). '%')
+                        ->where('violation_type_id', 'LIKE', '%'.$request->get('type'). '%')
+                        ->where('status', 'LIKE', '%'.$request->get('status'). '%')->get();
                 
             if (count($violations)) {
                 Log::info('Violations data displayed successfully.');
@@ -86,7 +86,7 @@ class ViolationController extends BaseController
     }
 
     /**
-     * File upload for ticket.
+     * File upload for violation.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -103,11 +103,9 @@ class ViolationController extends BaseController
                         $name = $mediaFiles->getClientOriginalName();
                         $filename = $violation->id.'-'.$name;
                         $path = $mediaFiles->storeAs('public/'.$folder, $filename);
-                        $ext  =  $mediaFiles->getClientOriginalExtension();
                         //store document file into directory and db
-                        $violationDocuments = new ViolationDocument();
+                        $violationDocuments = new violationDocument();
                         $violationDocuments->violation_id = $violation->id;
-                        $violationDocuments->file_type = $ext;
                         $violationDocuments->file_path = $path;
                         $violationDocuments->save();
                     }
@@ -118,8 +116,8 @@ class ViolationController extends BaseController
                 return response()->json(['file uploaded'], 200);
             }
         } catch (Exception $e) {
-            Log::error('Failed to upload ticket images due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to upload ticket images.');
+            Log::error('Failed to upload event images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload event images.');
         }
     }
 
@@ -138,6 +136,89 @@ class ViolationController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to retrieve violation data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve violation data, violation not found.');
+        }
+    }
+
+    /**
+     * Update the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function postResponse(Request $request, $id)
+    {
+        // Validate document
+        $validator = $this->validate(
+            $request, 
+        [
+            'user_reply' => 'required',
+            'documents.*' => 'mimes:jpg,jpeg,bmp,png,pdf,xlsx',
+            'documents' => 'required|max:5',
+        ],
+        [
+            "documents.max" => "file can't be more than 5."
+        ]);
+
+        try {
+            $input = $request->except(['_method']);
+            $admins = User::whereHas('role', function ($query) {
+                $query->where('id', 1);
+            })->get();
+
+            $violation = Auth::guard('api')->user()->violations->find($id);
+            if ($violation) {
+                if ($violation->user_reply == null) {
+                    $saveReply = [
+                        'user_reply' => $request->user_reply
+                    ];
+                    $update = $violation->update($saveReply);
+                    if ($update) {
+                        if ($request->hasFile('documents')) {
+                            
+                            // Add new document
+                            $folder = 'violation_evidence_documents';
+                            $input = $request->documents;
+                            $files = $request->file('documents');
+                            $this->fileUpload($folder, $input, $files, $violation);
+                        }
+                        Notification::send($admins, new ViolationCloseRequestNotification($violation));
+                        Log::info('Reply posted successfully for violation id: '.$id);
+                        return $this->sendResponse(new ViolationResource($violation), 'Reply posted updated successfully.');
+                    } else {
+                        return $this->sendError('Failed to post reply.');      
+                    }
+                } else {
+                    return $this->sendError('You are already posted reply with evidence for violation close request.');
+                }
+            } else {
+                return $this->sendError('Violation not found to post reply');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to post reply due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to post reply.');
+        }
+    }
+
+    /**
+     * Mark notification as read.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function markNotification(Request $request)
+    {
+        try {
+            Auth::guard('api')->user()
+                ->unreadNotifications
+                ->when($request->input('id'), function ($query) use ($request) {
+                    return $query->where('id', $request->input('id'));
+                })
+                ->markAsRead();
+                Log::info('Notification marked as read.');
+                return $this->sendResponse([], 'Notification marked as read.');
+
+        } catch (Exception $e) {
+            Log::error('Failed to update notification mark as read due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to update notification mark as read.');
         }
     }
 
@@ -186,12 +267,12 @@ class ViolationController extends BaseController
                         }
                         // Add new document
                         $folder = 'violation_documents';
-                        $fileInput = $request->documents;
+                        $input = $request->documents;
                         $files = $request->file('documents');
-                        $this->fileUpload($folder, $input, $files, $violations);
+                        $this->fileUpload($folder, $input, $files, $violation);
                     }
                     Log::info('Violation updated successfully for violation id: '.$id);
-                    return $this->sendResponse([], 'Violation updated successfully.');
+                    return $this->sendResponse(new ViolationResource($violation), 'Violation updated successfully.');
                 } else {
                     return $this->sendError('Failed to update violation.');      
                 }
@@ -210,7 +291,7 @@ class ViolationController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Violation $violation)
+    public function destroy($id)
     {
         try {
             $violation = Violation::findOrFail($id);

@@ -46,6 +46,7 @@ use App\Http\Controllers\API\User\ImpLinkController as UserImpLinkController;
 use App\Http\Controllers\API\User\ClassifiedController as UserClassifiedController;
 use App\Http\Controllers\API\User\VotingController as UserVotingController;
 use App\Http\Controllers\API\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\API\User\ViolationController as UserViolationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -98,6 +99,8 @@ Route::middleware('auth:api')->group( function () {
     Route::resource('user-votings', UserVotingController::class);
     // Dashboard API Routes
     Route::resource('user-dashboard', UserDashboardController::class);
+    // Violation API Routes
+    Route::resource('user-violations', UserViolationController::class);
 });
 
 //To access admin routes
@@ -118,6 +121,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('roles', RoleController::class);
     // Violation API Routes
     Route::resource('violations', ViolationController::class);
+    Route::put('/post-response/{id}', [ViolationController::class, 'postResponse']);
+    Route::post('/mark-as-read', [ViolationController::class, 'markNotification'])->name('markNotification');
     // Violation Type API Routes
     Route::resource('violation-types', ViolationTypeController::class);
     // LostFoundItem API Routes
