@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\TicketCategory;
 use App\Http\Requests\StoreTicketCategoryRequest;
+use App\Http\Resources\TicketCategory as TicketCategoryResource;
 
 class TicketCategoryController extends BaseController
 {
@@ -23,7 +24,7 @@ class TicketCategoryController extends BaseController
             $ticketCategories = TicketCategory::where('status', 1)->orderBy('category', 'ASC')->get();
             if (count($ticketCategories)) {
                 Log::info('Ticket categories data displayed successfully.');
-                return $this->sendResponse($ticketCategories, 'Ticket categories data retrieved successfully.');
+                return $this->sendResponse(TicketCategoryResource::collection($ticketCategories), 'Ticket categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for ticket categories.');
             }
@@ -56,7 +57,7 @@ class TicketCategoryController extends BaseController
             $ticketCategory = TicketCategory::create($input);
             if ($ticketCategory) {
                 Log::info('Ticket category added successfully.');
-                return $this->sendResponse($ticketCategory, 'Ticket category added successfully.');
+                return $this->sendResponse(new TicketCategoryResource($ticketCategory), 'Ticket category added successfully.');
             } else {
                 return $this->sendError('Failed to add ticket category.');     
             }
@@ -77,7 +78,7 @@ class TicketCategoryController extends BaseController
         try {
             $ticketCategory = TicketCategory::findOrFail($id);
             Log::info('Showing ticket category for category id: '.$id);
-            return $this->sendResponse($ticketCategory, 'Ticket category retrieved successfully.');
+            return $this->sendResponse(new TicketCategoryResource($ticketCategory), 'Ticket category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve ticket category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve ticket category data, category not found.');
@@ -95,7 +96,7 @@ class TicketCategoryController extends BaseController
         try {
             $ticketCategory = TicketCategory::findOrFail($id);
             Log::info('Edit ticket category for category id: '.$id);
-            return $this->sendResponse($ticketCategory, 'Ticket category retrieved successfully.');
+            return $this->sendResponse(new TicketCategoryResource($ticketCategory), 'Ticket category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit ticket category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit ticket category data, category not found.');
@@ -109,7 +110,7 @@ class TicketCategoryController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreTicketCategoryRequest $request, $id)
     {
         try {
             $input = $request->except(['_method']);
@@ -118,7 +119,7 @@ class TicketCategoryController extends BaseController
                 $update = $ticketCategory->fill($input)->save();
                 if ($update) {
                     Log::info('Ticket category updated successfully for category id: '.$id);
-                    return $this->sendResponse([], 'Ticket category updated successfully.');
+                    return $this->sendResponse(new TicketCategoryResource($ticketCategory), 'Ticket category updated successfully.');
                 } else {
                     return $this->sendError('Failed to update ticket category.');     
                 }
@@ -140,17 +141,20 @@ class TicketCategoryController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Ticket-category does not found! Please try again.';
             $ticketCategory = TicketCategory::findOrFail($id);
             if ($ticketCategory) {
-                $ticketCategory->delete();
-                Log::info('Ticket category deleted successfully for category id: '.$id);
-                return $this->sendResponse([], 'Ticket category deleted successfully.');
-            } else {
-                return $this->sendError('Ticket category not found.');
+                $message = 'Cannot delete ticket-category, ticket-category is assigned to the ticket!';
+                if (!$ticketCategory->tickets->count()) {
+                    $ticketCategory->delete();
+                    Log::info('Ticket-category deleted successfully for category id: '.$id);
+                    return $this->sendResponse([], 'Ticket-category deleted successfully.');
+                }
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete ticket category due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete ticket category.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

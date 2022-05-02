@@ -9,6 +9,7 @@ use App\Http\Controllers\API\Admin\BreedController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\PetController;
 use App\Http\Controllers\API\Admin\PetTypeController;
+use App\Http\Controllers\API\Admin\StateController;
 use App\Http\Controllers\API\Admin\RoleController;
 use App\Http\Controllers\API\Admin\UserController;
 use App\Http\Controllers\API\Admin\ViolationController;
@@ -60,6 +61,7 @@ use App\Http\Controllers\API\User\ViolationController as UserViolationController
 */
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
+Route::post('logout', [RegisterController::class, 'logout']);
 
 //To access user routes
 Route::middleware('auth:api')->group( function () {
@@ -122,6 +124,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('pets', PetController::class);
     // Pet Type API Routes
     Route::resource('pet-types', PetTypeController::class);
+    // State API Routes
+    Route::resource('states', StateController::class);
     // Role API Routes
     Route::resource('roles', RoleController::class);
     // Violation API Routes
@@ -137,7 +141,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // Ticket API Routes
     Route::resource('tickets', TicketController::class);
     Route::put('/close-ticket/{id}', [TicketController::class, 'closeTicket']);
-    // VotingCategory API Routes
+    // TicketCategory API Routes
     Route::resource('ticket-categories', TicketCategoryController::class);
     // Event API Routes
     Route::resource('events', EventController::class);

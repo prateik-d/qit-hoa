@@ -11,7 +11,7 @@ use App\Models\Classified;
 use App\Models\ClassifiedImage;
 use App\Http\Requests\StoreClassifiedRequest;
 
-class ClassifiedController extends Controller
+class ClassifiedController extends BaseController
 {
     /**
      * Display a listing of the resource.

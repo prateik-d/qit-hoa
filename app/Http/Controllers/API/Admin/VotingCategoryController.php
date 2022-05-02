@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\VotingCategory;
 use App\Http\Requests\StoreVotingCategoryRequest;
+use App\Http\Resources\VotingCategory as VotingCategoryResource;
 
 class VotingCategoryController extends BaseController
 {
@@ -23,7 +24,7 @@ class VotingCategoryController extends BaseController
             $votingCategories = VotingCategory::all();
             if (count($votingCategories)) {
                 Log::info('Voting categories data displayed successfully.');
-                return $this->sendResponse($votingCategories, 'Voting categories data retrieved successfully.');
+                return $this->sendResponse(VotingCategoryResource::collection($votingCategories), 'Voting categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for voting categories.');
             }
@@ -57,7 +58,7 @@ class VotingCategoryController extends BaseController
             $votingCategory = VotingCategory::create($input);
             if ($votingCategory) {
                 Log::info('Voting category added successfully.');
-                return $this->sendResponse($votingCategory, 'Voting category added successfully.');
+                return $this->sendResponse(new VotingCategoryResource($votingCategory), 'Voting category added successfully.');
             } else {
                 return $this->sendError('Failed to add voting category.');     
             }
@@ -78,7 +79,7 @@ class VotingCategoryController extends BaseController
         try {
             $votingCategory = VotingCategory::findOrFail($id);
             Log::info('Showing voting category for category id: '.$id);
-            return $this->sendResponse($votingCategory, 'Voting category retrieved successfully.');
+            return $this->sendResponse(new VotingCategoryResource($votingCategory), 'Voting category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve voting category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve voting category data, category not found.');
@@ -96,7 +97,7 @@ class VotingCategoryController extends BaseController
         try {
             $votingCategory = VotingCategory::findOrFail($id);
             Log::info('Edit voting category for category id: '.$id);
-            return $this->sendResponse($votingCategory, 'Voting category retrieved successfully.');
+            return $this->sendResponse(new VotingCategoryResource($votingCategory), 'Voting category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit voting category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit voting category data, category not found.');
@@ -110,7 +111,7 @@ class VotingCategoryController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreVotingCategoryRequest $request, $id)
     {
         try {
             $input = $request->except(['_method']);
@@ -119,7 +120,7 @@ class VotingCategoryController extends BaseController
                 $update = $votingCategory->fill($input)->save();
                 if ($update) {
                     Log::info('Voting category updated successfully for category id: '.$id);
-                    return $this->sendResponse([], 'Voting category updated successfully.');
+                    return $this->sendResponse(new VotingCategoryResource($votingCategory), 'Voting category updated successfully.');
                 } else {
                     return $this->sendError('Failed to update voting category.');     
                 }
@@ -141,17 +142,20 @@ class VotingCategoryController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Voting-category does not found! Please try again.';
             $votingCategory = VotingCategory::findOrFail($id);
             if ($votingCategory) {
-                $votingCategory->delete();
-                Log::info('Voting category deleted successfully for category id: '.$id);
-                return $this->sendResponse([], 'Voting category deleted successfully.');
-            } else {
-                return $this->sendError('Voting category not found.');
+                $message = 'Cannot delete voting-category, voting-category is assigned to the voting!';
+                if (!$votingCategory->votings->count()) {
+                    $votingCategory->delete();
+                    Log::info('Voting-category deleted successfully for category id: '.$id);
+                    return $this->sendResponse([], 'Voting-category deleted successfully.');
+                }
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete voting category due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete voting category.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

@@ -12,6 +12,7 @@ use App\Models\State;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Resources\User as UserResource;
    
 class RegisterController extends BaseController
 {

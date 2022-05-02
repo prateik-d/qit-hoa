@@ -11,7 +11,7 @@ use App\Models\Document;
 use App\Models\DocumentCategory;
 use App\Http\Requests\StoreDocumentRequest;
 
-class DocumentController extends Controller
+class DocumentController extends BaseController
 {
     /**
      * Display a listing of the resource.

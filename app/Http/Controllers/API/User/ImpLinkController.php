@@ -11,7 +11,7 @@ use App\Models\ImpLink;
 use App\Http\Requests\StoreImpLinkRequest;
 use App\Http\Resources\ImpLink as ImpLinkResource;
 
-class ImpLinkController extends Controller
+class ImpLinkController extends BaseController
 {
     /**
      * Display a listing of the resource.

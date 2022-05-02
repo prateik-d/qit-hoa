@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\State;
 use App\Http\Requests\StoreStateRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Resources\State as StateResource;
 
-class StateController extends Controller
+class StateController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -23,7 +23,7 @@ class StateController extends Controller
         try {
             $states = State::all();
             if (count($states)) {
-                return $this->sendResponse($states, 'States retrieved successfully.');
+                return $this->sendResponse(new StateResource($states), 'States retrieved successfully.');
             } else {
                 return $this->sendError('No data found for states');
             }
@@ -57,7 +57,7 @@ class StateController extends Controller
             $state = State::create($input);
             if ($state) {
                 Log::info('State added successfully.');
-                return $this->sendResponse($state, 'State added successfully.');
+                return $this->sendResponse(new StateResource($state), 'State added successfully.');
             } else {
                 return $this->sendError('Failed to add state');     
             }
@@ -78,7 +78,7 @@ class StateController extends Controller
         try {
             $state = State::findOrFail($id);
             Log::info('Showing state for state id: '.$id);
-            return $this->sendResponse($state, 'State retrieved successfully.');
+            return $this->sendResponse(new StateResource($state), 'State retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve state data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve state data, state not found.');
@@ -96,7 +96,7 @@ class StateController extends Controller
         try {
             $state = State::findOrFail($id);
             Log::info('Edit state for state id: '.$id);
-            return $this->sendResponse($state, 'State retrieved successfully.');
+            return $this->sendResponse(new StateResource($state), 'State retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit state data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit state data, state not found.');
@@ -119,7 +119,7 @@ class StateController extends Controller
                 $update = $state->fill($input)->save();
                 if ($update) {
                     Log::info('State updated successfully for state id: '.$id);
-                    return $this->sendResponse([], 'State updated successfully.');
+                    return $this->sendResponse(new StateResource($state), 'State updated successfully.');
                 } else {
                     return $this->sendError('Failed to update state');      
                 }
@@ -141,20 +141,20 @@ class StateController extends Controller
     public function destroy($id)
     {
         try {
+            $message = 'State does not found! Please try again.'; 
             $state = State::findOrFail($id);
             if ($state) {
-                if ($state->delete()) {
+                $message = 'Cannot delete state, state is assigned to the city!';
+                if (!$state->cities->count()) {
+                    $state->delete();
                     Log::info('State deleted successfully for state id: '.$id);
                     return $this->sendResponse([], 'State deleted successfully.');
-                } else {
-                    return $this->sendError('State can not be deleted.');
                 }
-            } else {
-                return $this->sendError('State not found.');
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete state due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete state.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

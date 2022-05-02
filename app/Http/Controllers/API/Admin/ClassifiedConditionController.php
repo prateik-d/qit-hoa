@@ -111,9 +111,10 @@ class ClassifiedConditionController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreClassifiedConditionRequest $request, $id)
     {
         try {
+            $message = 'Classified-condition does not found! Please try again.';
             $input = $request->except(['_method']);
             $classifiedCondition = Classifiedcondition::findOrFail($id);
             if ($classifiedCondition) {
@@ -122,14 +123,13 @@ class ClassifiedConditionController extends BaseController
                     Log::info('Classified condition updated successfully for condition id: '.$id);
                     return $this->sendResponse(new ClassifiedConditionResource($classifiedCondition), 'Classified condition updated successfully.');
                 } else {
-                    return $this->sendError('Failed to update classified condition.');
+                    $message = 'Failed to update classified condition.';
                 }
-            } else {
-                return $this->sendError('Classified condition not found.');
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to update classified condition due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to update classified condition.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 

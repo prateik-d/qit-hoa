@@ -16,7 +16,7 @@ class CreateTicketCategoriesTable extends Migration
         Schema::create('ticket_categories', function (Blueprint $table) {
             $table->id();
             $table->string('category',100);
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }
