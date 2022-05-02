@@ -24,7 +24,7 @@ class StoreTicketCategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'category' => 'required',
+            'category' => 'required|unique:ticket_categories,category,' . \Request('id') . ',id',
         ];
     }
 }

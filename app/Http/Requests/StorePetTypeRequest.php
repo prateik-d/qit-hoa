@@ -24,7 +24,7 @@ class StorePetTypeRequest extends FormRequest
     public function rules()
     {
         return [
-            'type' => 'required',
+            'type' => 'required|unique:pet_types,type,' . \Request('id') . ',id',
             'status' => 'required',
         ];
     }

@@ -117,7 +117,7 @@ class User extends Authenticatable
 
     public function votings()
     {
-        return $this->belongsToMany(Voting::class, VotingNominee::class, 'user_id','voting_id')->withPivot('id', 'votes_received')->withTimestamps();
+        return $this->belongsToMany(Voting::class, VotingNominee::class, 'user_id','voting_id')->withPivot('id', 'votes_received', 'deleted_at')->withTimestamps();
     }
 
     public function violations()

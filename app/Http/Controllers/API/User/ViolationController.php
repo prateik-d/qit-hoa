@@ -26,6 +26,8 @@ class ViolationController extends BaseController
     public function index(Request $request)
     {
         try {
+            $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
+
             $violations = Violation::with('violationType')
                         ->where('status', 'open')
                         ->where('description', 'LIKE', '%'.$request->get('title'). '%')
@@ -33,11 +35,15 @@ class ViolationController extends BaseController
                         ->where('violation_type_id', 'LIKE', '%'.$request->get('type'). '%')
                         ->where('status', 'LIKE', '%'.$request->get('status'). '%')->get();
                 
-            if (count($violations)) {
-                Log::info('Violations data displayed successfully.');
-                return $this->sendResponse(ViolationResource::collection($violations), 'Violations data retrieved successfully.');
+            if (count($violationTypes)) {
+                if (count($violations)) {
+                    Log::info('Violations data displayed successfully.');
+                    return $this->sendResponse(ViolationResource::collection($violations), 'Violations data retrieved successfully.');
+                } else {
+                    return $this->sendError('No data found for violations');
+                }
             } else {
-                return $this->sendError('No data found for violations');
+                return $this->sendError('No data found for violation types');
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve violations data due to occurance of this exception'.'-'. $e->getMessage());

@@ -25,7 +25,7 @@ class StoreCityRequest extends FormRequest
     {
         return [
             'state_id' => 'required',
-            'city' => 'required',
+            'city' => 'required|unique:cities,city,' . \Request('id') . ',id',
         ];
     }
 }

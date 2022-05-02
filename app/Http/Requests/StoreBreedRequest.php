@@ -25,7 +25,7 @@ class StoreBreedRequest extends FormRequest
     {
         return [
             'pet_type_id' => 'required',
-            'breed' => 'required',
+            'breed' => 'required|unique:breeds,breed,' . \Request('id') . ',id',
         ];
     }
 }

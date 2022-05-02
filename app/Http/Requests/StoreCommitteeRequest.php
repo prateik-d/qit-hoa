@@ -24,7 +24,7 @@ class StoreCommitteeRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
+            'title' => 'required|unique:committees,title,' . \Request('id') . ',id',
             'description' => 'required',
             'year' => 'required',
             'can_receive_emails' => 'required',

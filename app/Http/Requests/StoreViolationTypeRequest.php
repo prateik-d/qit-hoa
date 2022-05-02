@@ -24,7 +24,7 @@ class StoreViolationTypeRequest extends FormRequest
     public function rules()
     {
         return [
-            'type'=> 'required',
+            'type' => 'required|unique:violation_types,type,' . \Request('id') . ',id',
         ];
     }
 }

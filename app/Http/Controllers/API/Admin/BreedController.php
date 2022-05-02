@@ -8,8 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Breed;
+use App\Models\PetType;
+use App\Http\Resources\Breed as BreedResource;
 use App\Http\Requests\StoreBreedRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BreedController extends BaseController
 {
@@ -24,7 +25,7 @@ class BreedController extends BaseController
             $breeds = Breed::all();
             if (count($breeds)) {
                 Log::info('Displayed breeds data successfully');
-                return $this->sendResponse($breeds, 'Breeds data retrieved successfully.');
+                return $this->sendResponse(new BreedResource($breeds), 'Breeds data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for breeds.');
             }
@@ -41,7 +42,18 @@ class BreedController extends BaseController
      */
     public function create()
     {
-        //
+        try {
+            $petTypes = PetType::pluck('type','id');
+            if (count($petTypes)) {
+                Log::info('Pet-types data displayed successfully.');
+                return $this->sendResponse($petTypes, 'Pet-types data retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for pet-types.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve pet-types data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve pet-types data.');
+        }
     }
 
     /**
@@ -58,7 +70,7 @@ class BreedController extends BaseController
             $breed = Breed::create($input);
             if ($breed) {
                 Log::info('Breed added successfully.');
-                return $this->sendResponse($breed, 'Breed added successfully.');
+                return $this->sendResponse(new BreedResource($breed), 'Breed added successfully.');
             } else {
                 return $this->sendError('Failed to add breed.');     
             }
@@ -79,7 +91,7 @@ class BreedController extends BaseController
         try {
             $breed = Breed::findOrFail($id);
             Log::info('Showing breed for category id: '.$id);
-            return $this->sendResponse($breed, 'Breed retrieved successfully.');
+            return $this->sendResponse(new BreedResource($breed), 'Breed retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve breed due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve breed, breed not found.');
@@ -95,9 +107,10 @@ class BreedController extends BaseController
     public function edit($id)
     {
         try {
+            $petTypes = PetType::pluck('type','id');
             $breed = Breed::findOrFail($id);
             Log::info('Showing breed for category id: '.$id);
-            return $this->sendResponse($breed, 'Breed retrieved successfully.');
+            return $this->sendResponse(['petTypes' => $petTypes, 'breed' => $breed], 'Breed retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit breed due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit breed, breed not found.');
@@ -120,7 +133,7 @@ class BreedController extends BaseController
                 $update = $breed->fill($input)->save();
                 if ($update) {
                     Log::info('Breed updated successfully for breed id: '.$id);
-                    return $this->sendResponse([], 'Breed updated successfully.');
+                    return $this->sendResponse(new BreedResource($breed), 'Breed updated successfully.');
                 } else {
                     return $this->sendError('Failed to update breed.');
                 }
@@ -142,17 +155,21 @@ class BreedController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Breed does not found! Please try again.'; 
             $breed = Breed::findOrFail($id);
             if ($breed) {
-                $breed->delete();
-                Log::info('Breed deleted successfully for breed id: '.$id);
-                return $this->sendResponse([], 'Breed deleted successfully.');
-            } else {
-                return $this->sendError('Breed not found.');
+                $message = 'Cannot delete breed, breed is assigned to the pet!';
+                if (!$breed->pets->count()) {
+                    $breed->delete();
+                    Log::info('Breed deleted successfully for breed id: '.$id);
+                    return $this->sendResponse([], 'Breed deleted successfully.');
+                } else {
+                    return $this->sendError($message);
+                }
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete breed due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete breed.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

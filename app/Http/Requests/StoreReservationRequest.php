@@ -27,11 +27,11 @@ class StoreReservationRequest extends FormRequest
             'ammenity_id' => 'required',
             'purpose' => 'required',
             'description' => 'required',
-            'booking_date' => 'required',
+            'booking_date' => 'required|date',
             'timeslots' => 'required',
             'booking_price' => 'required',
             'payment_mode' => 'required',
-            'payment_date' => 'required',
+            'payment_date' => 'required|date',
         ];
     }
 }

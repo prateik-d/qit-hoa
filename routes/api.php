@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 //Admin controllers
 use App\Http\Controllers\API\Admin\ACCRequestController;
+use App\Http\Controllers\API\Admin\BreedController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\PetController;
 use App\Http\Controllers\API\Admin\PetTypeController;
@@ -97,6 +98,8 @@ Route::middleware('auth:api')->group( function () {
     Route::resource('user-classifieds', UserClassifiedController::class);
     // Voting API Routes
     Route::resource('user-votings', UserVotingController::class);
+    Route::post('/vote', [UserVotingController::class, 'voteNominee']);
+    Route::get('/view-result/{id}', [UserVotingController::class, 'viewResult']);
     // Dashboard API Routes
     Route::resource('user-dashboard', UserDashboardController::class);
     // Violation API Routes
@@ -113,6 +116,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::post('/my-acc-request', [ACCRequestController::class, 'myAccRequest']);
     // Approve or reject received request 
     Route::put('/my-approval/{id}', [ACCRequestController::class, 'myApproval']);
+    // Breed API Routes
+    Route::resource('breeds', BreedController::class);
     // Pet API Routes
     Route::resource('pets', PetController::class);
     // Pet Type API Routes

@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Document;
+use App\Models\Voting;
 
-class DocumentCategory extends Model
+class Vote extends Model
 {
     use HasFactory;
 
@@ -16,11 +16,13 @@ class DocumentCategory extends Model
      * @var array
      */
     protected $fillable = [
-        'title'
+        'voting_id',
+        'voter_id',
+        'nominee_id'
     ];
-    
-    public function documents()
+
+    public function voting()
     {
-        return $this->hasMany(Document::class, 'category_id');
+        return $this->belongsTo(Voting::class);
     }
 }

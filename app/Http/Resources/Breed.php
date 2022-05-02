@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PetType extends JsonResource
+class Breed extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,12 +14,6 @@ class PetType extends JsonResource
      */
     public function toArray($request)
     {
-        return [
-            'id' => $this->id,
-            'type' => $this->type,
-            'status' => $this->status,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
-        ];
+        return parent::toArray($request);
     }
 }

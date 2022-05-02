@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Voting;
+use App\Models\VotingOption;
 use App\Http\Requests\StoreVotingRequest;
 
 class VotingController extends BaseController
@@ -23,13 +24,10 @@ class VotingController extends BaseController
             $votingCategories = VotingCategory::orderBy('title', 'ASC')->get();
 
             $voting = Voting::with('votingCategory')
+                    ->where('voting_category_id', 'LIKE', '%'.$request->get('title'). '%')
                     ->where('year', 'LIKE', '%'.$request->get('year'). '%')
-                    ->where('status', 'LIKE', '%'.$request->get('status'). '%');
-            
-            $voting = $voting->whereHas('votingCategory', function($query) use($request) {
-                $query->where('title', 'LIKE', '%'.$request->get('title'). '%');
-            })->get();
-
+                    ->where('status', 'LIKE', '%'.$request->get('status'). '%')->get();
+         
             if (count($votingCategories)) {
                 if (count($voting)) {
                     Log::info('Voting data displayed successfully.');
@@ -81,11 +79,17 @@ class VotingController extends BaseController
             $input = $request->all();
             $input['added_by'] = Auth::guard('api')->user()->id;
             $voting = Voting::create($input);
-            $nominees = $input['nominee'];
-            if (count($nominees)) {
-                $voting->nominees()->attach($nominees);
-            }
+            // $nominees = $input['nominee'];
+            // if (count($nominees)) {
+            //     $voting->nominees()->attach($nominees);
+            // }
             if ($voting) {
+                //store voting option
+                $votingOption = [
+                    'voting_id' => $voting->id,
+                    'option' => $input['option']
+                ];
+                $saveVotingOption = VotingOption::create($votingOption);
                 Log::info('Voting created successfully.');
                 return $this->sendResponse($voting, 'Voting created successfully.');
             } else {
@@ -148,10 +152,12 @@ class VotingController extends BaseController
             if ($voting) {
                 $update = $voting->fill($input)->save();
                 if ($update) {
-                    $nominees = $input['nominee'];
-                    if (count($nominees)) {
-                        $voting->nominees()->sync($nominees);
-                    }
+                    // $nominees = $input['nominee'];
+                    // if (count($nominees)) {
+                    //     $voting->nominees()->sync($nominees);
+                    // }
+                    $VotingOption = VotingOption::where('voting_id', $id)->first();
+                    $saveVotingOption = $VotingOption->update(['option' => $input['option']]);
                     Log::info('Voting updated successfully.');
                     return $this->sendResponse($voting, 'Voting updated successfully.');
                 } else {
@@ -177,7 +183,12 @@ class VotingController extends BaseController
         try {
             $voting = Voting::findOrFail($id);
             if ($voting) {
-                $votingNominee = $voting->nomminees()->detach();
+                if ($voting->nominees) {
+                    $voting->nominees()->detach();
+                }
+                if ($voting->votingOption) {
+                    $voting->votingOption->delete();
+                }
                 $voting->delete();
                 Log::info('Voting deleted successfully for voting id: '.$id);
                 return $this->sendResponse([], 'Voting deleted successfully.');

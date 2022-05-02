@@ -24,7 +24,7 @@ class StoreVotingCategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
+            'title' => 'required|unique:violation_categories,title,' . \Request('id') . ',id',
         ];
     }
 }

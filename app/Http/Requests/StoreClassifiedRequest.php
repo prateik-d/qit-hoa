@@ -29,7 +29,7 @@ class StoreClassifiedRequest extends FormRequest
             'classified_category_id' => 'required',
             'classified_condition_id' => 'required',
             'asking_price' => 'required',
-            'date_posted' => 'required',
+            'date_posted' => 'required|date',
             'posted_by' => 'required',
             'purchase_by' => 'required',
             'sale_price' => 'required',
