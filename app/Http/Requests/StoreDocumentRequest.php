@@ -26,7 +26,7 @@ class StoreDocumentRequest extends FormRequest
         return [
             'category_id' => 'required',
             'year' => 'required',
-            'title' => 'required',
+            'title' => 'required|unique:documents,title,' . \Request('id') . ',id',
             'type' => 'required',
             'description' => 'required',
         ];

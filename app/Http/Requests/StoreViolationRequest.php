@@ -25,12 +25,23 @@ class StoreViolationRequest extends FormRequest
     {
         return [
             'user_id'=> 'required',
-            'approved_by'=> 'nullable',
-            'violation_type'=> 'required',
+            'violation_type_id'=> 'required',
             'description'=> 'required',
-            'date'=> 'required',
-            'approved_on'=> 'required',
-            'status'=> 'nullable',
+            'violation_date'=> 'required|date',
+            'documents.*' => 'mimes:jpg,jpeg,bmp,png,pdf,xlsx',
+            'documents' => 'max:5',
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            "documents.max" => "file can't be more than 5."
         ];
     }
 }

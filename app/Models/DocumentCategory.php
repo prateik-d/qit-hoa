@@ -16,12 +16,11 @@ class DocumentCategory extends Model
      * @var array
      */
     protected $fillable = [
-        'category',
-        'status'
+        'title'
     ];
     
     public function documents()
     {
-        return $this->hasMany(Document::class);
+        return $this->hasMany(Document::class, 'category_id');
     }
 }

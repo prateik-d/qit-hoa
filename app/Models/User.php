@@ -14,8 +14,10 @@ use App\Models\AccRequestUser;
 use App\Models\LostFoundItem;
 use App\Models\Ticket;
 use App\Models\UserDocument;
+use App\Models\Violation;
 use App\Models\Vehicle;
 use App\Models\Voting;
+use App\Models\VotingNominee;
 
 class User extends Authenticatable
 {
@@ -115,6 +117,11 @@ class User extends Authenticatable
 
     public function votings()
     {
-        return $this->belongsToMany(Voting::class, VotingNominee::class, 'user_id','voting_id')->withPivot('id', 'votes_received')->withTimestamps();
+        return $this->belongsToMany(Voting::class, VotingNominee::class, 'user_id','voting_id')->withPivot('id', 'votes_received', 'deleted_at')->withTimestamps();
+    }
+
+    public function violations()
+    {
+        return $this->hasMany(Violation::class, 'user_id');
     }
 }

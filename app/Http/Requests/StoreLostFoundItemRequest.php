@@ -29,7 +29,7 @@ class StoreLostFoundItemRequest extends FormRequest
             'item_type' => 'required',
             'category_id' => 'required',
             'description' => 'required',
-            'date_lost' => 'required',
+            'date_lost' => 'required|date',
             'location' => 'required',
         ];
     }

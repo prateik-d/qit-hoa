@@ -16,11 +16,12 @@ class CreateViolationsTable extends Migration
         Schema::create('violations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('approved_by');
-            $table->string('violation_type',100);
+            $table->unsignedBigInteger('violation_type_id');
             $table->text('description');
-            $table->date('date');
-            $table->string('approved_on');
+            $table->date('violation_date');
+            $table->unsignedBigInteger('approved_by');
+            $table->text('moderator_comment')->nullable();
+            $table->text('user_reply')->nullable();
             $table->enum('status', ['open', 'closed', 'under review'])->default('open');
             $table->timestamps();
         });

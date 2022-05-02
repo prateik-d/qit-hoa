@@ -38,7 +38,7 @@ class StoreUserRequest extends FormRequest
             'zip' => 'required|numeric',
             'profile_pic' => 'required',
             'password' => 'required|min:8|max:255',
-            // 'c_password' => 'required|same:password',
+            'c_password' => 'required|same:password',
         ];
     }
 }

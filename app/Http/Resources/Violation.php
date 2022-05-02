@@ -15,16 +15,17 @@ class Violation extends JsonResource
     public function toArray($request)
     {
         return [
-            'id'=> $this->id,
-            'user_id'=> $this->user_id,
-            'approved_by'=> $this->approved_by,
-            'violation_type'=> $this->violation_type,
-            'description'=> $this->description,
-            'date'=> $this->date,
-            'approved_on'=> $this->approved_on,
-            'status'=> $this->status,
-            'created_at'=> $this->created_at,
-            'updated_at'=> $this->updated_at,
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'violation_type_id' => $this->violation_type_id,
+            'description' => $this->description,
+            'violation_date' => $this->violation_date,
+            'approved_by' => $this->approved_by,
+            'moderator_commment' => $this->moderator_commment,
+            'user_reply' => $this->user_reply,
+            'status' => $this->status,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

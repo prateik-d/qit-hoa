@@ -17,7 +17,7 @@ class CreateVotingOptionsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('voting_id');
             $table->string('option',100);
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }

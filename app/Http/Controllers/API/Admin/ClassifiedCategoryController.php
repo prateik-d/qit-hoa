@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\ClassifiedCategory;
 use App\Http\Requests\StoreClassifiedCategoryRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Resources\ClassifiedCategory as ClassifiedCategoryResource;
 
 class ClassifiedCategoryController extends BaseController
 {
@@ -24,7 +24,7 @@ class ClassifiedCategoryController extends BaseController
             $classifiedCategories = ClassifiedCategory::all();
             if (count($classifiedCategories)) {
                 Log::info('Classified categories data displayed successfully.');
-                return $this->sendResponse($classifiedCategories, 'Classified categories data retrieved successfully.');
+                return $this->sendResponse(new ClassifiedCategoryResource($classifiedCategories), 'Classified categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for classified categories.');
             }
@@ -58,7 +58,7 @@ class ClassifiedCategoryController extends BaseController
             $classifiedCategory = ClassifiedCategory::create($input);
             if ($classifiedCategory) {
                 Log::info('Classified category added successfully.');
-                return $this->sendResponse($classifiedCategory, 'Classified category added successfully.');
+                return $this->sendResponse(new ClassifiedCategoryResource($classifiedCategory), 'Classified category added successfully.');
             } else {
                 return $this->sendError('Failed to add classified category.');     
             }
@@ -78,8 +78,8 @@ class ClassifiedCategoryController extends BaseController
     {
         try {
             $classifiedCategory = ClassifiedCategory::findOrFail($id);
-            Log::info('Showing classified category for category id: '.$classified->id);
-            return $this->sendResponse($classifiedCategory, 'Classified category retrieved successfully.');
+            Log::info('Showing classified category for category id: '.$id);
+            return $this->sendResponse(new ClassifiedCategoryResource($classifiedCategory), 'Classified category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve classified category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve classified category, Category not found.');
@@ -97,7 +97,7 @@ class ClassifiedCategoryController extends BaseController
         try {
             $classifiedCategory = ClassifiedCategory::findOrFail($id);
             Log::info('Showing classified category for category id: '.$id);
-            return $this->sendResponse($classifiedCategory, 'Classified category retrieved successfully.');
+            return $this->sendResponse(new ClassifiedCategoryResource($classifiedCategory), 'Classified category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit classified category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit classified category, Category not found.');
@@ -120,7 +120,7 @@ class ClassifiedCategoryController extends BaseController
                 $update = $classifiedCategory->fill($input)->save();
                 if ($update) {
                     Log::info('Classified category updated successfully for category id: '.$id);
-                    return $this->sendResponse([], 'Classified category updated successfully.');
+                    return $this->sendResponse(new ClassifiedCategoryResource($classifiedCategory), 'Classified category updated successfully.');
                 } else {
                     return $this->sendError('Failed to update classified category.');
                 }
@@ -142,17 +142,21 @@ class ClassifiedCategoryController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Classified-category does not found! Please try again.'; 
             $classifiedCategory = ClassifiedCategory::findOrFail($id);
             if ($classifiedCategory) {
-                $classifiedCategory->delete();
-                Log::info('Classified category deleted successfully for category id: '.$id);
-                return $this->sendResponse([], 'Classified category deleted successfully.');
-            } else {
-                return $this->sendError('Classified category not found.');
+                if (!$classifiedCategory->classifiedItems->count()) {
+                    $classifiedCategory->delete();
+                    Log::info('Classified category deleted successfully for category id: '.$id);
+                    return $this->sendResponse([], 'Classified category deleted successfully.');
+                } else {
+                    $message = 'Cannot delete classified-category, classified-category is assigned to the classified!';
+                }
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete classified category due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete classified category.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

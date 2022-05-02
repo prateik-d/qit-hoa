@@ -24,7 +24,7 @@ class StoreDocumentCategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
+            'title' => 'required|unique:document_categories,title,' . \Request('id') . ',id',
         ];
     }
 }

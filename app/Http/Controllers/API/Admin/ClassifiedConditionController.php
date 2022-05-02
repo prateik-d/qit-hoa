@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\ClassifiedCondition;
 use App\Http\Requests\StoreClassifiedConditionRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Resources\ClassifiedCondition as ClassifiedConditionResource;
 
-class ClassifiedConditionController extends Controller
+class ClassifiedConditionController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -24,7 +24,7 @@ class ClassifiedConditionController extends Controller
             $classifiedConditions = Classifiedcondition::all();
             if (count($classifiedConditions)) {
                 Log::info('Classified conditions data displayed successfully.');
-                return $this->sendResponse($classifiedConditions, 'Classified conditions data retrieved successfully.');
+                return $this->sendResponse(new ClassifiedConditionResource($classifiedConditions), 'Classified conditions data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for classified conditions.');
             }
@@ -58,7 +58,7 @@ class ClassifiedConditionController extends Controller
             $classifiedCondition = Classifiedcondition::create($input);
             if ($classifiedCondition) {
                 Log::info('Classified condition added successfully.');
-                return $this->sendResponse($classifiedCondition, 'Classified condition added successfully.');
+                return $this->sendResponse(new ClassifiedConditionResource($classifiedCondition), 'Classified condition added successfully.');
             } else {
                 return $this->sendError('Failed to add classified condition.');     
             }
@@ -79,7 +79,7 @@ class ClassifiedConditionController extends Controller
         try {
             $classifiedCondition = Classifiedcondition::findOrFail($id);
             Log::info('Showing classified condition for condition id: '.$id);
-            return $this->sendResponse($classifiedCondition, 'Classified condition retrieved successfully.');
+            return $this->sendResponse(new ClassifiedConditionResource($classifiedCondition), 'Classified condition retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve classified condition due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve classified condition, condition not found.');
@@ -97,7 +97,7 @@ class ClassifiedConditionController extends Controller
         try {
             $classifiedCondition = Classifiedcondition::findOrFail($id);
             Log::info('Showing classified condition for condition id: '.$id);
-            return $this->sendResponse($classifiedCondition, 'Classified condition retrieved successfully.');
+            return $this->sendResponse(new ClassifiedConditionResource($classifiedCondition), 'Classified condition retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit classified condition due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit classified condition, condition not found.');
@@ -111,25 +111,25 @@ class ClassifiedConditionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreClassifiedConditionRequest $request, $id)
     {
         try {
+            $message = 'Classified-condition does not found! Please try again.';
             $input = $request->except(['_method']);
             $classifiedCondition = Classifiedcondition::findOrFail($id);
             if ($classifiedCondition) {
                 $update = $classifiedCondition->fill($input)->save();
                 if ($update) {
                     Log::info('Classified condition updated successfully for condition id: '.$id);
-                    return $this->sendResponse([], 'Classified condition updated successfully.');
+                    return $this->sendResponse(new ClassifiedConditionResource($classifiedCondition), 'Classified condition updated successfully.');
                 } else {
-                    return $this->sendError('Failed to update classified condition.');
+                    $message = 'Failed to update classified condition.';
                 }
-            } else {
-                return $this->sendError('Classified condition not found.');
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to update classified condition due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to update classified condition.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 
@@ -142,17 +142,21 @@ class ClassifiedConditionController extends Controller
     public function destroy($id)
     {
         try {
+            $message = 'Classified-condition does not found! Please try again.'; 
             $classifiedCondition = Classifiedcondition::findOrFail($id);
             if ($classifiedCondition) {
-                $classifiedCondition->delete();
-                Log::info('Classified condition deleted successfully for condition id: '.$id);
-                return $this->sendResponse([], 'Classified condition deleted successfully.');
-            } else {
-                return $this->sendError('Classified condition not found.');
+                if (!$classifiedCondition->classifiedItems->count()) {
+                    $classifiedCondition->delete();
+                    Log::info('Classified condition deleted successfully for condition id: '.$id);
+                    return $this->sendResponse([], 'Classified condition deleted successfully.');
+                } else {
+                    $message = 'Cannot delete classified-condition, classified-condition is assigned to the classified!';
+                }
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete classified condition due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete classified condition');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

@@ -30,7 +30,7 @@ class StoreVehicleRequest extends FormRequest
             'license_plate_no' => 'required',
             'toll_tag_no' => 'required',
             'toll_tag_type' => 'required',
-            'application_date' => 'required',
+            'application_date' => 'required|date',
         ];
     }
 }

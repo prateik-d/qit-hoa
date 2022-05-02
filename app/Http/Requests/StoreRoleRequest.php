@@ -24,7 +24,7 @@ class StoreRoleRequest extends FormRequest
     public function rules()
     {
         return [
-            'role_type' => 'required',
+            'role_type' => 'required|unique:roles,role_type,' . \Request('id') . ',id',
             'permission_id' => 'required',
         ];
     }

@@ -262,7 +262,15 @@ class AccRequestController extends BaseController
                             // Delete old documents to upload new
                             if ($accRequest->accDocuments()) {
                                 foreach ($accRequest->accDocuments as $file) {
+                                    // To delete old city permit document
                                     if ($file->file_type == 'city_permit_documents') {
+                                        if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                            unlink(storage_path('app/'.$file->file_path));
+                                            $file->delete();
+                                        }
+                                    }
+                                    // To delete old supporting document
+                                    if ($file->file_type == 'supporting_documents') {
                                         if (file_exists(storage_path('app/'.$file->file_path))) { 
                                             unlink(storage_path('app/'.$file->file_path));
                                             $file->delete();
@@ -282,7 +290,15 @@ class AccRequestController extends BaseController
                             // Delete old documents to upload new
                             if ($accRequest->accDocuments()) {
                                 foreach ($accRequest->accDocuments as $file) {
+                                    // To delete old supporting document
                                     if ($file->file_type == 'supporting_documents') {
+                                        if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                            unlink(storage_path('app/'.$file->file_path));
+                                            $file->delete();
+                                        }
+                                    }
+                                    // To delete old city permit document
+                                    if ($file->file_type == 'city_permit_documents') {
                                         if (file_exists(storage_path('app/'.$file->file_path))) { 
                                             unlink(storage_path('app/'.$file->file_path));
                                             $file->delete();

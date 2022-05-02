@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Admin;
    
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -82,7 +83,7 @@ class EventController extends BaseController
     {
         try {
             $input = $request->all();
-            // $input['organized_by'] = Auth::guard('api')->user()->id;
+            $input['organized_by'] = Auth::guard('api')->user()->id;
             $event = Event::create($input);
             if ($event) {
                 if ($request->hasFile('photos')) {
@@ -167,8 +168,13 @@ class EventController extends BaseController
     {
         try {
             $event = Event::findOrFail($id);
-            Log::info('Edit event data for event id: '.$id);
-            return $this->sendResponse(new EventResource($event), 'Event retrieved successfully.');
+            if ($event->status != 'cancelled') {
+                Log::info('Edit event data for event id: '.$id);
+                return $this->sendResponse(new EventResource($event), 'Event retrieved successfully.');
+            } else {
+                Log::error('Cannot edit event data for event id: '.$id.' '.'because the event is cancelled by admin');
+                return $this->sendError('Operation failed to edit event data, because the event is cancelled by admin.');
+            }
         } catch (Exception $e) {
             Log::error('Failed to edit event data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit event data, event not found.');
@@ -188,28 +194,33 @@ class EventController extends BaseController
             $input = $request->except(['_method']);
             $event = Event::findOrFail($id);
             if ($event) {
-                $update = $event->fill($input)->save();
-                if ($update) {
-                    if ($request->hasFile('photos')) {
-                        // Delete old images to upload new
-                        if ($event->eventImages()) {
-                            foreach ($event->eventImages as $file) {
-                                if (file_exists(storage_path('app/'.$file->event_photo_path))) { 
-                                    unlink(storage_path('app/'.$file->event_photo_path));
+                if ($event->status != 'cancelled') {
+                    $update = $event->fill($input)->save();
+                    if ($update) {
+                        if ($request->hasFile('photos')) {
+                            // Delete old images to upload new
+                            if ($event->eventImages()) {
+                                foreach ($event->eventImages as $file) {
+                                    if (file_exists(storage_path('app/'.$file->event_photo_path))) { 
+                                        unlink(storage_path('app/'.$file->event_photo_path));
+                                    }
                                 }
+                                $event->eventImages()->delete();
                             }
-                            $event->eventImages()->delete();
+                            // Add new images
+                            $folder = 'event_photos';
+                            $input = $request->photo;
+                            $files = $request->file('photo');
+                            $this->fileUpload($folder, $input, $files, $event);
                         }
-                        // Add new images
-                        $folder = 'event_photos';
-                        $input = $request->photo;
-                        $files = $request->file('photo');
-                        $this->fileUpload($folder, $input, $files, $event);
+                        Log::info('Event updated successfully for event id: '.$id);
+                        return $this->sendResponse([], 'Event updated successfully.');
+                    } else {
+                        return $this->sendError('Failed to update event');      
                     }
-                    Log::info('Event updated successfully for event id: '.$id);
-                    return $this->sendResponse([], 'Event updated successfully.');
                 } else {
-                    return $this->sendError('Failed to update event');      
+                    Log::error('Cannot update event data for event id: '.$id.' '.'because the event is cancelled by admin');
+                    return $this->sendError('Operation failed to update event data, because the event is cancelled by admin.');
                 }
             } else {
                 return $this->sendError('Event not found.');
@@ -221,6 +232,29 @@ class EventController extends BaseController
     }
    
     /**
+     * Show upcoming events.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function upcomingEvent()
+    {
+        try {
+            $currentDateTime = Carbon::now()->toDateTimeString();
+			$upcomingEvents = Event::where('start_datetime', '>', $currentDateTime)->where('status', '!=', 'cancelled')->get();
+            if (count($upcomingEvents)) {
+                Log::info('Displayed upcoming events successfully');
+                return $this->sendResponse($upcomingEvents, 'Upcoming events retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for upcoming events.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve upcoming events due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve upcoming events, events not found.');
+        }
+    }
+
+    /**
      * Show archived events.
      *
      * @param  int  $id
@@ -229,18 +263,43 @@ class EventController extends BaseController
     public function archivedEvent()
     {
         try {
-            $archivedEvent = Auth::guard('api')->user()->events()->where('status', 'archived')->get();
-            if ($archivedEvent) {
-                Log::info('Showing archived event data for event id: '.$id);
+			$archivedEvent = Event::where('status', 'archived')->get();
+            if (count($archivedEvent)) {
+                Log::info('Displayed archived events successfully');
                 return $this->sendResponse(new EventResource($archivedEvent), 'Archived events retrieved successfully.');
             } else {
-                return $this->sendError('Archived events not found.');
+                return $this->sendError('No data found for archived events.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve archived event data due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve archived event data, event not found.');
+            Log::error('Failed to retrieve archived events due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve archived events, events not found.');
         }
     }
+
+    /**
+     * update event to cancel.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function cancelEvent($id)
+    {
+        try {
+            $currentDateTime = Carbon::now()->toDateTimeString();
+			$cancelledEvent = Event::where('start_datetime', '>', $currentDateTime)->update('status', 'cancelled');
+            if ($cancelledEvent) {
+                Log::info('Cancelled event for event id: '.$id);
+                return $this->sendResponse(new EventResource($cancelledEvent), 'Event cancelled successfully.');
+            } else {
+                return $this->sendError('Failed to cancel event.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to cancel event due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to cancel event, event not found.');
+        }
+    }
+
+
     /**
      * Remove the specified resource from storage.
      *

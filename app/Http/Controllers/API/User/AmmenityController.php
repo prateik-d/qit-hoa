@@ -18,9 +18,20 @@ class AmmenityController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        try {
+            $ammenities = Ammenity::with('ammenityDocuments')->where('title', 'LIKE', '%'.$request->get('title'). '%')->get();
+            if (count($ammenities)) {
+                Log::info('Displayed ammenities data successfully.');
+                return $this->sendResponse(new AmmenityResource($ammenities), 'Ammenity retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for ammenities data.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve ammenities data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve ammenities data.');
+        }
     }
 
     /**

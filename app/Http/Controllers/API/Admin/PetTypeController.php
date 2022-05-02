@@ -22,7 +22,7 @@ class PetTypeController extends BaseController
     {
         try {
             $petType = PetType::all();
-            if (count($faq)) {
+            if (count($petType)) {
                 Log::info('Pet-type data displayed successfully.');
                 return $this->sendResponse(PetTypeResource::collection($petType), 'Pet-type data retrieved successfully.');
             } else {
@@ -141,19 +141,22 @@ class PetTypeController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Pet-type does not found! Please try again.'; 
             $petType = PetType::findOrFail($id);
             if ($petType) {
-                if ($petType->delete()) {
+                if (!$petType->breeds->count()) {
+                    $petType->delete();
+                    Log::info('Pet-type deleted successfully for pet-type id: '.$id);
                     return $this->sendResponse([], 'Pet-type deleted successfully.');
-                } else {
-                    return $this->sendError('Pet-type can not be deleted.');
+				}
+                else {
+                    $message = 'Cannot delete pet-type, pet-type is assigned to the breed!';
                 }
-            } else {
-                return $this->sendError('Pet-type not found.');
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete pet-type due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete pet-type.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

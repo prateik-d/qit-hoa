@@ -33,6 +33,6 @@ class AccRequest extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, AccRequestUser::class, 'acc_request_id', 'neighbour_id');
+        return $this->belongsToMany(User::class, AccRequestUser::class, 'acc_request_id', 'neighbour_id')->withTimestamps();
     }
 }

@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ViolationType;
+use App\Models\ViolationDocument;
 
 class Violation extends Model
 {
     use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -15,13 +18,22 @@ class Violation extends Model
      */
     protected $fillable = [
         'user_id',
-        'approved_by',
-        'violation_type',
+        'violation_type_id',
         'description',
-        'date',
-        'approved_on',
-        'status',
-        'created_at',
-        'updated_at'
+        'violation_date',
+        'approved_by',
+        'moderator_commment',
+        'user_reply',
+        'status'
     ];
+
+    public function violationType()
+    {
+        return $this->belongsTo(ViolationType::class);
+    }
+
+    public function violationDocuments()
+    {
+        return $this->hasMany(ViolationDocument::class);
+    }
 }

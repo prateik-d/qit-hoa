@@ -24,7 +24,7 @@ class StoreStateRequest extends FormRequest
     public function rules()
     {
         return [
-            'state' => 'required',
+            'state' => 'required|unique:states,state,' . \Request('id') . ',id',
         ];
     }
 }

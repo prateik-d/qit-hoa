@@ -5,12 +5,15 @@ use Illuminate\Support\Facades\Route;
 
 //Admin controllers
 use App\Http\Controllers\API\Admin\ACCRequestController;
+use App\Http\Controllers\API\Admin\BreedController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\PetController;
 use App\Http\Controllers\API\Admin\PetTypeController;
+use App\Http\Controllers\API\Admin\StateController;
 use App\Http\Controllers\API\Admin\RoleController;
 use App\Http\Controllers\API\Admin\UserController;
 use App\Http\Controllers\API\Admin\ViolationController;
+use App\Http\Controllers\API\Admin\ViolationTypeController;
 use App\Http\Controllers\API\Admin\LostFoundItemController;
 use App\Http\Controllers\API\Admin\TicketController;
 use App\Http\Controllers\API\Admin\VehicleController;
@@ -24,6 +27,9 @@ use App\Http\Controllers\API\Admin\ClassifiedController;
 use App\Http\Controllers\API\Admin\ClassifiedConditionController;
 use App\Http\Controllers\API\Admin\ClassifiedCategoryController;
 use App\Http\Controllers\API\Admin\DocumentCategoryController;
+use App\Http\Controllers\API\Admin\VotingController;
+use App\Http\Controllers\API\Admin\VotingCategoryController;
+use App\Http\Controllers\API\Admin\TicketCategoryController;
 
 //User controllers
 use App\Http\Controllers\API\User\RegisterController;
@@ -40,9 +46,9 @@ use App\Http\Controllers\API\User\DocumentController as UserDocumentController;
 use App\Http\Controllers\API\User\FaqController as UserFaqController;
 use App\Http\Controllers\API\User\ImpLinkController as UserImpLinkController;
 use App\Http\Controllers\API\User\ClassifiedController as UserClassifiedController;
-use App\Http\Controllers\API\User\ClassifiedConditionController as UserClassifiedConditionController;
-use App\Http\Controllers\API\User\ClassifiedCategoryController as UserClassifiedCategoryController;
-use App\Http\Controllers\API\User\DocumentCategoryController as UserDocumentCategoryController;
+use App\Http\Controllers\API\User\VotingController as UserVotingController;
+use App\Http\Controllers\API\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\API\User\ViolationController as UserViolationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -55,6 +61,7 @@ use App\Http\Controllers\API\User\DocumentCategoryController as UserDocumentCate
 */
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
+Route::post('logout', [RegisterController::class, 'logout']);
 
 //To access user routes
 Route::middleware('auth:api')->group( function () {
@@ -68,6 +75,8 @@ Route::middleware('auth:api')->group( function () {
     // Event API Routes
     Route::resource('user-events', UserEventController::class);
     Route::get('/archived-event', [UserEventController::class, 'archivedEvent']);
+    Route::get('/upcoming-event', [UserEventController::class, 'upcomingEvent']);
+    Route::put('/cancel-event/{id}', [UserEventController::class, 'cancelEvent']);
     // LostFoundItem API Routes
     Route::resource('user-lost-found-items', UserLostFoundItemController::class);
     // Ticket API Routes
@@ -89,12 +98,14 @@ Route::middleware('auth:api')->group( function () {
     Route::resource('user-imp-links', UserImpLinkController::class);
     // Classified API Routes
     Route::resource('user-classifieds', UserClassifiedController::class);
-    // ClassifiedCondition API Routes
-    Route::resource('user-classified-conditions', UserClassifiedConditionController::class);
-    // ClassifiedCategory API Routes
-    Route::resource('user-classified-categories', UserClassifiedCategoryController::class);
-    // DocumentCategory API Routes
-    Route::resource('user-document-categories', UserDocumentCategoryController::class);
+    // Voting API Routes
+    Route::resource('user-votings', UserVotingController::class);
+    Route::post('/vote', [UserVotingController::class, 'voteNominee']);
+    Route::get('/view-result/{id}', [UserVotingController::class, 'viewResult']);
+    // Dashboard API Routes
+    Route::resource('user-dashboard', UserDashboardController::class);
+    // Violation API Routes
+    Route::resource('user-violations', UserViolationController::class);
 });
 
 //To access admin routes
@@ -107,14 +118,22 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::post('/my-acc-request', [ACCRequestController::class, 'myAccRequest']);
     // Approve or reject received request 
     Route::put('/my-approval/{id}', [ACCRequestController::class, 'myApproval']);
+    // Breed API Routes
+    Route::resource('breeds', BreedController::class);
     // Pet API Routes
     Route::resource('pets', PetController::class);
     // Pet Type API Routes
     Route::resource('pet-types', PetTypeController::class);
+    // State API Routes
+    Route::resource('states', StateController::class);
     // Role API Routes
     Route::resource('roles', RoleController::class);
     // Violation API Routes
     Route::resource('violations', ViolationController::class);
+    Route::put('/post-response/{id}', [ViolationController::class, 'postResponse']);
+    Route::post('/mark-as-read', [ViolationController::class, 'markNotification'])->name('markNotification');
+    // Violation Type API Routes
+    Route::resource('violation-types', ViolationTypeController::class);
     // LostFoundItem API Routes
     Route::resource('lost-found-items', LostFoundItemController::class);
     // Members API Routes
@@ -122,11 +141,17 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // Ticket API Routes
     Route::resource('tickets', TicketController::class);
     Route::put('/close-ticket/{id}', [TicketController::class, 'closeTicket']);
+    // TicketCategory API Routes
+    Route::resource('ticket-categories', TicketCategoryController::class);
     // Event API Routes
     Route::resource('events', EventController::class);
     Route::get('/archived-event', [EventController::class, 'archivedEvent']);
+    Route::get('/upcoming-event', [EventController::class, 'upcomingEvent']);
+    Route::put('/cancel-event/{id}', [EventController::class, 'cancelEvent']);
     // Vehicle API Routes
     Route::resource('vehicles', VehicleController::class);
+    // This should be under 'auth' middleware group
+    Route::post('/mark-as-read', [VehicleController::class, 'markNotification'])->name('markNotification');
     // Ammenity API Routes
     Route::resource('ammenities', AmmenityController::class);
     // Committee API Routes
@@ -147,4 +172,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('classified-categories', ClassifiedCategoryController::class);
     // DocumentCategory API Routes
     Route::resource('document-categories', DocumentCategoryController::class);
+    // VotingCategory API Routes
+    Route::resource('voting-categories', VotingCategoryController::class);
+    // Voting API Routes
+    Route::resource('votings', VotingController::class);
 });

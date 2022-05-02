@@ -16,9 +16,8 @@ class CreateViolationDocumentsTable extends Migration
         Schema::create('violation_documents', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('violation_id');
-            $table->unsignedBigInteger('file_type');
             $table->string('file_path');
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }

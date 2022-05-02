@@ -24,7 +24,7 @@ class StoreClassifiedCategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'category' => 'required',
+            'category' => 'required|unique:classified_categories,category,' . \Request('id') . ',id',
         ];
     }
 }

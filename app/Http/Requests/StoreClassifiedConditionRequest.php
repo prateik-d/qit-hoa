@@ -24,7 +24,7 @@ class StoreClassifiedConditionRequest extends FormRequest
     public function rules()
     {
         return [
-            'condition' => 'required',
+            'condition' => 'required|unique:classified_conditions,condition,' . \Request('id') . ',id',
         ];
     }
 }

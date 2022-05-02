@@ -17,8 +17,9 @@ class CreateVotingNomineesTable extends Migration
             $table->id();
             $table->unsignedBigInteger('voting_id');
             $table->unsignedBigInteger('user_id');
-            $table->integer('votes_received');
+            $table->integer('votes_received')->nullable();
             $table->timestamps();
+            $table->dateTime('deleted_at')->nullable();
         });
     }
 

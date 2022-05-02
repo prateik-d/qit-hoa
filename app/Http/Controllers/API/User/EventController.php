@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\User;
    
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -151,7 +152,7 @@ class EventController extends BaseController
     {
         try {
             $event = Auth::guard('api')->user()->events->find($id);
-            Log::info('Showing event for event id: '.$Document->id);
+            Log::info('Showing event for event id: '.$id);
             return $this->sendResponse(new EventResource($event), 'Event retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve event due to occurance of this exception'.'-'. $e->getMessage());
@@ -169,7 +170,7 @@ class EventController extends BaseController
     {
         try {
             $event = Auth::guard('api')->user()->events->find($id);
-            Log::info('Edit event for event id: '.$Document->id);
+            Log::info('Edit event for event id: '.$id);
             return $this->sendResponse(new EventResource($event), 'Event retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit event due to occurance of this exception'.'-'. $e->getMessage());
@@ -223,6 +224,29 @@ class EventController extends BaseController
     }
    
     /**
+     * Show upcoming events.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function upcomingEvent()
+    {
+        try {
+            $currentDateTime = Carbon::now()->toDateTimeString();
+			$upcomingEvents = Event::where('start_datetime', '>', $currentDateTime)->where('status', '!=', 'cancelled')->get();
+            if (count($upcomingEvents)) {
+                Log::info('Displayed upcoming events successfully');
+                return $this->sendResponse($upcomingEvents, 'Upcoming events retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for upcoming events.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve upcoming events due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve upcoming events, events not found.');
+        }
+    }
+
+    /**
      * Show archived events.
      *
      * @param  int  $id
@@ -231,12 +255,39 @@ class EventController extends BaseController
     public function archivedEvent()
     {
         try {
-            $archivedEvent = Auth::guard('api')->user()->events()->where('status', 'archived')->get();
-            Log::info('Showing archived events for event id: '.$id);
-            return $this->sendResponse(new EventResource($archivedEvent), 'Archived events retrieved successfully.');
+			$archivedEvent = Auth::guard('api')->user()->events()->where('status', 'archived')->get();
+            if (count($archivedEvent)) {
+                Log::info('Displayed archived events successfully');
+                return $this->sendResponse(new EventResource($archivedEvent), 'Archived events retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for archived events.');
+            }
         } catch (Exception $e) {
             Log::error('Failed to retrieve archived events due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve archived events, events not found.');
+        }
+    }
+
+    /**
+     * update event to cancel.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function cancelEvent($id)
+    {
+        try {
+            $currentDateTime = Carbon::now()->toDateTimeString();
+			$cancelledEvent = Auth::guard('api')->user()->events()->where('start_datetime', '>', $currentDateTime)->update('status', 'cancelled');
+            if ($cancelledEvent) {
+                Log::info('Cancelled event for event id: '.$id);
+                return $this->sendResponse(new EventResource($cancelledEvent), 'Event cancelled successfully.');
+            } else {
+                return $this->sendError('Failed to cancel event.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to cancel event due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to cancel event, event not found.');
         }
     }
 
