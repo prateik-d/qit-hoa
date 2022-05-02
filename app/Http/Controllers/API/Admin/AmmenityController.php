@@ -203,25 +203,29 @@ class AmmenityController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Ammenity does not found! Please try again.'; 
             $ammenity = Ammenity::findOrFail($id);
             if ($ammenity) {
-                if ($ammenity->ammenityDocuments()) {
-                    foreach ($ammenity->ammenityDocuments as $file) {
-                        if (file_exists(storage_path('app/'.$file->file_path))) { 
-                            unlink(storage_path('app/'.$file->file_path));
+                $message = 'Cannot delete ammenity, ammenity is assigned to the reservation!';
+                if (!$ammenity->reservations->count()) {
+                    // To delete related documents
+                    if ($ammenity->ammenityDocuments()) {
+                        foreach ($ammenity->ammenityDocuments as $file) {
+                            if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                unlink(storage_path('app/'.$file->file_path));
+                            }
                         }
+                        $ammenity->ammenityDocuments()->delete();
                     }
-                    $ammenity->ammenityDocuments()->delete();
+                    $ammenity->delete();
+                    Log::info('Ammenity deleted successfully for ammenity id: '.$id);
+                    return $this->sendResponse([], 'Ammenity deleted successfully.');
                 }
-                $ammenity->delete();
-                Log::info('Ammenity deleted successfully for ammenity id: '.$id);
-                return $this->sendResponse([], 'Ammenity deleted successfully.');
-            } else {
-                return $this->sendError('Ammenity not found.');
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete ammenity due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete ammenity.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

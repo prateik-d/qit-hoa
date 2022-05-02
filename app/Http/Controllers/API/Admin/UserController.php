@@ -46,7 +46,20 @@ class UserController extends BaseController
      */
     public function create()
     {
-        //
+        try {
+            $roles = Role::orderBy('role_type', 'ASC')
+                                ->get();
+
+            if (count($roles)) {
+                Log::info('Roles data displayed successfully.');
+                return $this->sendResponse($roles, 'Roles data retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for roles.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve roles due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve roles.');
+        }
     }
 
     /**

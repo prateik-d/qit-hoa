@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateEventLocationTable extends Migration
+class CreateEventLocationsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,10 @@ class CreateEventLocationTable extends Migration
      */
     public function up()
     {
-        Schema::create('event_location', function (Blueprint $table) {
+        Schema::create('event_locations', function (Blueprint $table) {
             $table->id();
             $table->string('location');
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ class CreateEventLocationTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('event_location');
+        Schema::dropIfExists('event_locations');
     }
 }

@@ -24,7 +24,7 @@ class StoreACCRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
+            'title' => 'required|unique:acc_requests,title,' . \Request('id') . ',id',
             'user_id' => 'required',
             'neighbour_id' => 'required|max:4',
             'improvement_details' => 'required',

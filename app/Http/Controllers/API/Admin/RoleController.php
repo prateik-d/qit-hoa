@@ -112,7 +112,7 @@ class RoleController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(StoreroleRequest $request, $id)
+    public function update(StoreRoleRequest $request, $id)
     {
         try {
             $input = $request->except(['_method']);
@@ -121,7 +121,7 @@ class RoleController extends BaseController
                 $update = $role->fill($input)->save();
                 if ($update) {
                     Log::info('Role updated successfully for role id: '.$id);
-                    return $this->sendResponse([], 'Role updated successfully.');
+                    return $this->sendResponse(new RoleResource($role), 'Role updated successfully.');
                 } else {
                     return $this->sendError('Failed to update role.');      
                 }
@@ -143,20 +143,20 @@ class RoleController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Role does not found! Please try again.'; 
             $role = Role::findOrFail($id);
             if ($role) {
-                if ($role->delete()) {
+                $message = 'Cannot delete role, role is assigned to the user!';
+                if (!$role->users->count()) {
+                    $role->delete();
                     Log::info('Role deleted successfully for role id: '.$id);
                     return $this->sendResponse([], 'Role deleted successfully.');
-                } else {
-                    return $this->sendError('Role can not be deleted.');
                 }
-            } else {
-                return $this->sendError('Role not found.');
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete role due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete role.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

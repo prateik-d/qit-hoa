@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreAmmenityRequest extends FormRequest
+class StoreCategoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,11 +24,8 @@ class StoreAmmenityRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required|unique:ammenities,title,' . \Request('id') . ',id',
+            'category' => 'required|unique:categories,category,' . \Request('id') . ',id',
             'description' => 'required',
-            'booking_price' => 'required',
-            'days_available' => 'required',
-            'timeslots' => 'required',
         ];
     }
 }

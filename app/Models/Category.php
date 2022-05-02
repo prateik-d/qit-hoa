@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\LostFoundItem;
 
 class Category extends Model
 {
@@ -15,12 +16,14 @@ class Category extends Model
      * @var array
      */
     protected $fillable = [
-        'name',
-        'description',
-        'created_at',
-        'updated_at',
-        // 'deleted_at'
+        'category',
+        'description'
     ];
+
+    public function lostFoundItems()
+    {
+        return $this->hasMany(LostFoundItem::class);
+    }
 
     protected $casts = [
         'created_at' => 'datetime',

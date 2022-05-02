@@ -16,7 +16,7 @@ class CreateEventCategoriesTable extends Migration
         Schema::create('event_categories', function (Blueprint $table) {
             $table->id();
             $table->string('category');
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }

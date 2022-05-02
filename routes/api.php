@@ -6,7 +6,10 @@ use Illuminate\Support\Facades\Route;
 //Admin controllers
 use App\Http\Controllers\API\Admin\ACCRequestController;
 use App\Http\Controllers\API\Admin\BreedController;
+use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\Admin\EventController;
+use App\Http\Controllers\API\Admin\EventCategoryController;
+use App\Http\Controllers\API\Admin\EventLocationController;
 use App\Http\Controllers\API\Admin\PetController;
 use App\Http\Controllers\API\Admin\PetTypeController;
 use App\Http\Controllers\API\Admin\StateController;
@@ -120,6 +123,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::put('/my-approval/{id}', [ACCRequestController::class, 'myApproval']);
     // Breed API Routes
     Route::resource('breeds', BreedController::class);
+    // Category API Routes
+    Route::resource('categories', CategoryController::class);
     // Pet API Routes
     Route::resource('pets', PetController::class);
     // Pet Type API Routes
@@ -148,6 +153,10 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::get('/archived-event', [EventController::class, 'archivedEvent']);
     Route::get('/upcoming-event', [EventController::class, 'upcomingEvent']);
     Route::put('/cancel-event/{id}', [EventController::class, 'cancelEvent']);
+    // EventCategory API Routes
+    Route::resource('event-categories', EventCategoryController::class);
+    // EventLocation API Routes
+    Route::resource('event-locations', EventLocationController::class);
     // Vehicle API Routes
     Route::resource('vehicles', VehicleController::class);
     // This should be under 'auth' middleware group

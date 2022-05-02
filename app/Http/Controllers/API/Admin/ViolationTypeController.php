@@ -119,7 +119,7 @@ class ViolationTypeController extends BaseController
                 $update = $violationType->fill($input)->save();
                 if ($update) {
                     Log::info('Violation-type updated successfully for violation-type id: '.$id);
-                    return $this->sendResponse([], 'Violation-type updated successfully.');
+                    return $this->sendResponse(new ViolationTypeResource($violationType), 'Violation-type updated successfully.');
                 } else {
                     return $this->sendError('Failed to update violation-type.');      
                 }
@@ -141,19 +141,20 @@ class ViolationTypeController extends BaseController
     public function destroy($id)
     {
         try {
+            $message = 'Violation-type does not found! Please try again.';
             $violationType = ViolationType::findOrFail($id);
             if ($violationType) {
-                if ($violationType->delete()) {
+                $message = 'Cannot delete violation-type, violation-type is assigned to the violation!';
+                if (!$violationType->violations->count()) {
+                    $violationType->delete();
+                    Log::info('Violation-type deleted successfully for type id: '.$id);
                     return $this->sendResponse([], 'Violation-type deleted successfully.');
-                } else {
-                    return $this->sendError('Violation-type can not be deleted.');
                 }
-            } else {
-                return $this->sendError('Violation-type not found.');
+                return $this->sendError($message);
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete violation-type due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete violation-type.');
+            Log::error($message.'-'. $e->getMessage());
+            return $this->sendError($message);
         }
     }
 }

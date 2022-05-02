@@ -17,7 +17,7 @@ class CreateCategoriesTable extends Migration
             $table->id();
             $table->string('category');
             $table->text('description');
-            $table->tinyInteger('is_hidden');
+            $table->tinyInteger('is_hidden')->default(0);
             $table->timestamps();
         });
     }
