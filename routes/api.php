@@ -33,6 +33,8 @@ use App\Http\Controllers\API\Admin\DocumentCategoryController;
 use App\Http\Controllers\API\Admin\VotingController;
 use App\Http\Controllers\API\Admin\VotingCategoryController;
 use App\Http\Controllers\API\Admin\TicketCategoryController;
+use App\Http\Controllers\API\Admin\PermissionHeadingController;
+use App\Http\Controllers\API\Admin\PermissionController;
 
 //User controllers
 use App\Http\Controllers\API\User\RegisterController;
@@ -143,6 +145,10 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('lost-found-items', LostFoundItemController::class);
     // Members API Routes
     Route::resource('users', UserController::class);
+    // Permission API Routes
+    Route::resource('permissions', PermissionController::class);
+    // PermissionHeading API Routes
+    Route::resource('permission-headings', PermissionHeadingController::class);
     // Ticket API Routes
     Route::resource('tickets', TicketController::class);
     Route::put('/close-ticket/{id}', [TicketController::class, 'closeTicket']);

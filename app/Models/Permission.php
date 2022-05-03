@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\PermissionHeading;
+use App\Models\Role;
 
 class Permission extends Model
 {
@@ -14,12 +16,18 @@ class Permission extends Model
     public $timestamps = true;
 
     protected $fillable = [
+        'permission_heading_id',
         'type',
         'status',
     ];
 
-    public function permission_heading() {
+    public function permissionHeading() {
         return $this->belongsTo(PermissionHeading::class);
+    }
+
+    public function roles()
+    {
+        return $this->hasMany(Role::class);
     }
 
     public function insertData($request) {

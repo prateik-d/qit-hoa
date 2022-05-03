@@ -16,7 +16,7 @@ class CreatePermissionHeadingsTable extends Migration
         Schema::create('permission_headings', function (Blueprint $table) {
             $table->id();
             $table->string('heading');
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }

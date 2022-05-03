@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Permission;
 
 class PermissionHeading extends Model
 {
@@ -17,6 +18,11 @@ class PermissionHeading extends Model
         'heading',
         'status'
     ];
+
+    public function permissions()
+    {
+        return $this->hasMany(Permission::class);
+    }
 
     public function insertData($request) {
         if($request->status=='on') {
