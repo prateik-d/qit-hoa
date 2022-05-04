@@ -47,7 +47,7 @@ class PermissionController extends BaseController
             $headings = PermissionHeading::pluck('heading','id');
             if (count($headings)) {
                 Log::info('Permission-headings data displayed successfully.');
-                return $this->sendResponse(PermissionHeading::collection($headings), 'Permission-headings data retrieved successfully.');
+                return $this->sendResponse($headings, 'Permission-headings data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for permission-headings.');
             }

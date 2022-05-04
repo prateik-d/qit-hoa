@@ -148,6 +148,51 @@ class ReservationController extends BaseController
     }
 
     /**
+     * get the specified resource notification.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function notification() {
+        try {
+            $notifications = Auth::guard('api')->user()->unreadNotifications;
+
+            if ($notifications) {
+                Log::info('Notification received for reservation request.');
+                return $this->sendResponse($notifications, 'Notification received for reservation request.');
+            } else {
+                return $this->sendError('Notifications not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to receive notification for reservation request due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to receive notification for reservation request.');
+        }
+    }
+
+    /**
+     * Mark notification as read.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function markNotification(Request $request)
+    {
+        try {
+            Auth::guard('api')->user()
+                ->unreadNotifications
+                ->when($request->input('id'), function ($query) use ($request) {
+                    return $query->where('id', $request->input('id'));
+                })
+                ->markAsRead();
+                Log::info('Notification marked as read.');
+                return $this->sendResponse([], 'Notification marked as read.');
+
+        } catch (Exception $e) {
+            Log::error('Failed to update notification mark as read due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to update notification mark as read.');
+        }
+    }
+    
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id

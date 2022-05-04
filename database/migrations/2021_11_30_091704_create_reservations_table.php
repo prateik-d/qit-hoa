@@ -20,10 +20,11 @@ class CreateReservationsTable extends Migration
             $table->text('description');
             $table->unsignedBigInteger('booked_by');
             $table->date('booking_date');
-            $table->time('timeslots');
+            $table->time('timeslots_start');
+            $table->time('timeslots_end');
             $table->decimal('booking_price', 10, 2);
-            $table->enum('payment_mode', ['cash', 'card', 'online']);
-            $table->dateTime('payment_date');
+            $table->enum('payment_mode', ['cash', 'card', 'online'])->default('card');
+            $table->dateTime('payment_date')->nullable();
             $table->enum('payment_status', ['unpaid', 'paid'])->default('unpaid');
             $table->timestamps();
         });

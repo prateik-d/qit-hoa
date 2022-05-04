@@ -27,11 +27,14 @@ class StoreReservationRequest extends FormRequest
             'ammenity_id' => 'required',
             'purpose' => 'required',
             'description' => 'required',
-            'booking_date' => 'required|date',
-            'timeslots' => 'required',
+            // 'booking_date' => 'required|date',
+            'booking_date' => [
+                'date_format:Y-m-d',// format without hours, minutes and seconds.
+                'after_or_equal:' . date('Y-m-d'), // not 'now' string
+            ],
+            // 'timeslots' => 'required',
             'booking_price' => 'required',
-            'payment_mode' => 'required',
-            'payment_date' => 'required|date',
+            'payment_mode' => 'required'
         ];
     }
 }

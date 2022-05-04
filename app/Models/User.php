@@ -18,6 +18,7 @@ use App\Models\Violation;
 use App\Models\Vehicle;
 use App\Models\Voting;
 use App\Models\VotingNominee;
+use App\Models\Reservation;
 
 class User extends Authenticatable
 {
@@ -123,5 +124,10 @@ class User extends Authenticatable
     public function violations()
     {
         return $this->hasMany(Violation::class, 'user_id');
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'booked_by');
     }
 }

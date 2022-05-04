@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class Reservation extends Model
 {
@@ -20,10 +21,16 @@ class Reservation extends Model
         'description',
         'booked_by',
         'booking_date',
-        'timeslots',
+        'timeslots_start',
+        'timeslots_end',
         'booking_price',
         'payment_mode',
         'payment_date',
         'payment_status'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class,'id');
+    }
 }

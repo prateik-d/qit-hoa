@@ -173,6 +173,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('committees', CommitteeController::class);
     // Reservation API Routes
     Route::resource('reservations', ReservationController::class);
+    Route::get('/notification', [ReservationController::class, 'notification']);
+    Route::post('/mark-as-read', [ReservationController::class, 'markNotification'])->name('markNotification');
     // Document API Routes
     Route::resource('documents', DocumentController::class);
     // Faq API Routes
