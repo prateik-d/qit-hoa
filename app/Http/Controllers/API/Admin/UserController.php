@@ -9,7 +9,6 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\User;
 use App\Http\Resources\User as UserResource;
 use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends BaseController
 {
@@ -135,7 +134,7 @@ class UserController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateUserRequest $request, $id)
+    public function update(StoreUserRequest $request, $id)
     {
         try {
             $input = $request->except(['_method']);

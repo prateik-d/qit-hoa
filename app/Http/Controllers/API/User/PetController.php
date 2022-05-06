@@ -24,8 +24,8 @@ class PetController extends BaseController
     public function index(Request $request)
     {
         try {
-            $type = PetType::where('status',1)->orderBy('type','asc')->get();
-            $breed = Breed::where('status',1)->orderBy('breed','asc')->get();
+            $type = PetType::where('status', 1)->orderBy('type', 'asc')->get();
+            $breed = Breed::where('status', 1)->orderBy('breed', 'asc')->get();
             
             if ($request->all()) {
                 $pets = Pet::with('petType', 'breed', 'owner')

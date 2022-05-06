@@ -54,6 +54,7 @@ use App\Http\Controllers\API\User\ClassifiedController as UserClassifiedControll
 use App\Http\Controllers\API\User\VotingController as UserVotingController;
 use App\Http\Controllers\API\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\API\User\ViolationController as UserViolationController;
+use App\Http\Controllers\API\User\UserController as MemberController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -111,6 +112,8 @@ Route::middleware('auth:api')->group( function () {
     Route::resource('user-dashboard', UserDashboardController::class);
     // Violation API Routes
     Route::resource('user-violations', UserViolationController::class);
+    // Violation API Routes
+    Route::resource('members', MemberController::class);
 });
 
 //To access admin routes

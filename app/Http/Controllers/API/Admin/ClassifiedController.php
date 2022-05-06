@@ -12,8 +12,7 @@ use App\Models\ClassifiedImage;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedCondition;
 use App\Http\Resources\Classified as ClassifiedResource;
-use App\Http\Requests\StoreClassifiedRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;  
+use App\Http\Requests\StoreClassifiedRequest; 
 
 class ClassifiedController extends BaseController
 {
@@ -96,7 +95,7 @@ class ClassifiedController extends BaseController
     }
 
     /**
-     * File upload for ticket.
+     * File upload for classified.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response

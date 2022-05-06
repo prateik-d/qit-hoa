@@ -19,6 +19,7 @@ use App\Models\Vehicle;
 use App\Models\Voting;
 use App\Models\VotingNominee;
 use App\Models\Reservation;
+use App\Models\Classified;
 
 class User extends Authenticatable
 {
@@ -129,5 +130,10 @@ class User extends Authenticatable
     public function reservations()
     {
         return $this->hasMany(Reservation::class, 'booked_by');
+    }
+
+    public function classifieds()
+    {
+        return $this->hasMany(Classified::class, 'added_by');
     }
 }

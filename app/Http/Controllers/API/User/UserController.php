@@ -1,10 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\User;
+   
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\User;
+use App\Http\Resources\User as UserResource;
+use App\Http\Requests\StoreUserRequest;
 
-class UserController extends Controller
+class UserController extends BaseController
 {
     /**
      * Display the specified resource.
@@ -41,9 +48,25 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        try {
+            $users = User::where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
+                ->where('email', 'LIKE' , '%'.$request->get('email').'%')
+                ->where('address', 'LIKE' , '%'.$request->get('address').'%')->get();
+
+            if (count($users)) {
+                Log::info('Users data displayed successfully');
+                return $this->sendResponse(UserResource::collection($users), 'Users data retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for users');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve users due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve users');
+        }
     }
 
     /**

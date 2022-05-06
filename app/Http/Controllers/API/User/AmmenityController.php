@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Ammenity;
 use App\Models\AmmenityDocument;
 use App\Http\Requests\StoreAmmenityRequest;
+use App\Http\Resources\Ammenity as AmmenityResource;
 
 class AmmenityController extends BaseController
 {
@@ -63,7 +64,14 @@ class AmmenityController extends BaseController
      */
     public function show($id)
     {
-        //
+        try {
+            $ammenity = Ammenity::with('ammenityDocuments')->findOrFail($id);
+            Log::info('Showing ammenity for ammenity id: '.$id);
+            return $this->sendResponse(new AmmenityResource($ammenity), 'Ammenity retrieved successfully.');
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve ammenity due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve ammenity, ammenity not found.');
+        }
     }
 
     /**
