@@ -53,7 +53,7 @@ class ClassifiedController extends BaseController
     public function create()
     {
         try {
-            $categories = ClassifiedCategory::where('status',1)->orderBy('category','asc')->get();
+            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->get();
             if (count($categories)) {
                 Log::info('Classified categories displayed successfully.');
                 return $this->sendResponse($categories, 'Classified categories retrieved successfully.');

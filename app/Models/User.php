@@ -136,4 +136,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Classified::class, 'added_by');
     }
+
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'added_by');
+    }
 }

@@ -127,6 +127,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // Approve or reject received request 
     Route::put('/my-approval/{id}', [ACCRequestController::class, 'myApproval']);
     // Breed API Routes
+    Route::get('/acc-report-export',[ACCRequestController::class, 'export'])->name('acc.export');
     Route::resource('breeds', BreedController::class);
     // Category API Routes
     Route::resource('categories', CategoryController::class);

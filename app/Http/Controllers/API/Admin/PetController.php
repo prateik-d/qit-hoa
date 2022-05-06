@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\User;
 use App\Models\Breed;
 use App\Models\Pet;
 use App\Models\PetType;
@@ -24,35 +25,21 @@ class PetController extends BaseController
     public function index(Request $request)
     {
         try {
-            $type = PetType::where('status',1)->orderBy('type','asc')->get();
-            $breed = Breed::where('status',1)->orderBy('breed','asc')->get();
+            $result = Pet::with('petType', 'breed', 'owner')->where('pet_name', 'LIKE', '%'.$request->get('pet_name'). '%')->where('owner_id', 'LIKE' , '%'.$request->get('owner').'%')->where('breed_id', 'LIKE' , '%'.$request->get('breed').'%')->where('pet_type_id', 'LIKE' , '%'.$request->get('type').'%');
+            $type = PetType::where('status', 1)->orderBy('type','asc')->get();
+            $breed = Breed::where('status', 1)->orderBy('breed','asc')->get();
+            $user = User::orderBy('first_name','asc')->get();
             
-            if ($request->all()) {
-                $pets = Pet::with('petType', 'breed', 'owner')
-                ->where('pet_name', 'LIKE', '%'.$request->get('pet_name'). '%');
-
-                $pets = $pets->whereHas('owner', function($query) use($request) {
-                    $query->where('address', 'LIKE' , '%'.$request->get('address').'%')
-                    ->where('id', 'LIKE' , '%'.$request->get('owner').'%');
-                });
-
-                $pets = $pets->whereHas('breed', function($query) use($request) {
-                    $query->where('breed', 'LIKE' , '%'.$request->get('breed').'%');
-                });
-
-                $result = $pets->whereHas('petType', function($query) use($request) {
-                    $query->where('type', 'LIKE' , '%'.$request->get('type').'%');
-                })->get();
-            } else {
-                $result = Pet::with('petType', 'breed', 'owner')->get();
-            }
+            $result = $result->whereHas('owner', function($query) use($request) {
+                $query->where('address', 'LIKE' , '%'.$request->get('address').'%');
+            })->get();
 
             $user = Auth::guard('api')->user();
             $myPet = $user->pets()->get();
             
             if (count($result)) {
                 Log::info('Pet data displayed successfully.');
-                return $this->sendResponse([$result, $myPet], 'Pets data retrieved successfully.');
+                return $this->sendResponse(['type' => $type, 'breed' => $breed, 'user' => $user, 'result' => $result, 'mypet' => $myPet], 'Pets data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for pets');
             }

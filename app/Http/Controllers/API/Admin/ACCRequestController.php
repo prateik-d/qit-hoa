@@ -11,7 +11,8 @@ use App\Models\AccRequest;
 use App\Models\AccDocument;
 use App\Http\Resources\ACCRequest as ACCRequestResource;
 use App\Http\Requests\StoreACCRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Exports\AccRequestExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ACCRequestController extends BaseController
 {
@@ -360,6 +361,11 @@ class ACCRequestController extends BaseController
         }
     }
     
+    public function export()
+    {
+        return Excel::download(new AccRequestExport, 'acc-request.xlsx');
+    }
+
     /**
      * Remove the specified resource from storage.
      *

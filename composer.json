@@ -14,7 +14,8 @@
         "laravel/passport": "^10.3",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.2",
-        "pelmered/fake-car": "^1.7"
+        "pelmered/fake-car": "^1.7",
+        "maatwebsite/excel": "^3.1"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
