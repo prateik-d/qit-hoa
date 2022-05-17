@@ -149,6 +149,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('lost-found-items', LostFoundItemController::class);
     // Members API Routes
     Route::resource('users', UserController::class);
+    // To Get City List
+    Route::get('/city-list/{id}', [UserController::class, 'getCityList']);
     // Permission API Routes
     Route::resource('permissions', PermissionController::class);
     // PermissionHeading API Routes

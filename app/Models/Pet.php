@@ -41,9 +41,9 @@ class Pet extends Model
         return $this->belongsTo(Breed::class);
     }
 
-    public function owner()
+    public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     public function petImages()

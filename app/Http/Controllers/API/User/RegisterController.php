@@ -11,7 +11,7 @@ use App\Models\Role;
 use App\Models\State;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\RegisterUserRequest;
 use App\Http\Resources\User as UserResource;
    
 class RegisterController extends BaseController
@@ -21,14 +21,15 @@ class RegisterController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function register(StoreUserRequest $request)
+    public function register(RegisterUserRequest $request)
     {
         $input = $request->all();
+        $input['password'] = bcrypt($input['password']);
         if ($request->hasFile('profile_pic')) {
             $file = $request->file('profile_pic');
             $name = $file->getClientOriginalName();
             $filename = $input['first_name'].$input['last_name'].'-'.$name;
-            $path = $file->storeAs('public/Members_profile_pic', $filename);
+            $path = $file->storeAs('public/users_profile_pic', $filename);
             $input['profile_pic'] = $path;
         }
         $user = User::create($input);

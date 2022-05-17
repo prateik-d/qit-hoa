@@ -6,6 +6,8 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Notification;
+use App\Notifications\NewVehicleNotification;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Vehicle;
 use App\Http\Requests\StoreVehicleRequest;

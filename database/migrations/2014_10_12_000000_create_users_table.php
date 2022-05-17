@@ -27,7 +27,8 @@ class CreateUsersTable extends Migration
             $table->string('landline_no',50);
             $table->longText('address');
             $table->string('zip',10);
-            $table->string('profile_pic');
+            $table->string('profile_pic')->nullable();
+            $table->tinyInteger('status')->default(1);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->longText('remember_token')->nullable();
