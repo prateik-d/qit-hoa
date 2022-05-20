@@ -271,4 +271,36 @@ class VehicleController extends BaseController
             return $this->sendError('Operation failed to delete vehicle.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $vehicles = Vehicle::whereIn('id',explode(",",$ids))->get();
+            if ($vehicles) {
+                foreach ($vehicles as $vehicle) {
+                    if ($vehicle->vehicleDocuments()) {
+                        $filePath = $vehicle->vehicleDocuments->pluck('file_path')->first();
+                        if (file_exists(storage_path('app/'.$filePath))) { 
+                            unlink(storage_path('app/'.$filePath));
+                        }
+                        $vehicle->vehicleDocuments()->delete();
+                    }
+                    $vehicle->delete();
+                }
+                Log::info('Selected vehicles deleted successfully');
+                return $this->sendResponse([], 'Selected vehicles deleted successfully.');
+            } else {
+                return $this->sendError('Vehicles not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete vehicles due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete vehicles.');
+        }
+    }
 }

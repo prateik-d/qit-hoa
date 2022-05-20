@@ -228,4 +228,42 @@ class AmmenityController extends BaseController
             return $this->sendError($message);
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $ammenities = Ammenity::whereIn('id',explode(",",$ids))->get();
+            if ($ammenities) {
+                $message = 'Cannot delete ammenity, ammenity is assigned to the reservation!';
+                if (!$ammenity->reservations->count()) {
+                    foreach ($ammenities as $ammenity) {
+                        // To delete related documents
+                        if ($ammenity->ammenityDocuments()) {
+                            foreach ($ammenity->ammenityDocuments as $file) {
+                                if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                    unlink(storage_path('app/'.$file->file_path));
+                                }
+                            }
+                            $ammenity->ammenityDocuments()->delete();
+                        }
+                        $ammenity->delete();
+                    }
+                    Log::info('Selected ammenities deleted successfully');
+                    return $this->sendResponse([], 'Selected ammenities deleted successfully.');
+                }
+                return $this->sendError($message);
+            } else {
+                return $this->sendError('Ammenities not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete ammenities due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete ammenities.');
+        }
+    }
 }

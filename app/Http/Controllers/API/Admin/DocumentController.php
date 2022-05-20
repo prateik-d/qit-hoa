@@ -190,4 +190,34 @@ class DocumentController extends BaseController
             return $this->sendError('Operation failed to delete document.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $documents = Document::whereIn('id',explode(",",$ids))->get();
+            if ($documents) {
+                foreach ($documents as $document) {
+                    if ($document->file_path != null) {
+                        if (file_exists(storage_path('app/'.$document->file_path))) {
+                            unlink(storage_path('app/'.$document->file_path));
+                        }
+                    }
+                    $document->delete();
+                }
+                Log::info('Selected documents deleted successfully');
+                return $this->sendResponse([], 'Selected documents deleted successfully.');
+            } else {
+                return $this->sendError('Documents not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete documents due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete documents.');
+        }
+    }
 }

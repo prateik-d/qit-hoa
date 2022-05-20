@@ -251,4 +251,38 @@ class PetController extends BaseController
             return $this->sendError('Operation failed to delete pet.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $pets = Pet::whereIn('id',explode(",",$ids))->get();
+            if ($pets) {
+                foreach ($pets as $pet) {
+                    if ($pet->petImages()) {
+                        foreach ($pet->petImages as $file) {
+                            if (file_exists(storage_path('app/'.$file->img_file_path))) { 
+                                unlink(storage_path('app/'.$file->img_file_path));
+                            }
+                        }
+                        $pet->petImages()->delete();
+                    }
+                    $pet->delete();
+                }
+                Log::info('Selected pets deleted successfully');
+                return $this->sendResponse([], 'Selected pets deleted successfully.');
+            } else {
+                return $this->sendError('Pets not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete pets due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete pets.');
+        }
+    }
+
 }

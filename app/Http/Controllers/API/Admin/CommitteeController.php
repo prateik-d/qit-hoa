@@ -218,7 +218,7 @@ class CommitteeController extends BaseController
             $committee = Committee::findOrFail($id);
             if ($committee) {
                 $accNeighbours = $committee->members()->detach();
-                //Delete old images to upload new
+                // Delete images
                 if ($committee->committeePhotos()) {
                     foreach ($committee->committeePhotos as $file) {
                         if (file_exists(storage_path('app/'.$file->file_path))) { 
@@ -236,6 +236,41 @@ class CommitteeController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to delete committee due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to delete committee.');
+        }
+    }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $committees = Committee::whereIn('id',explode(",",$ids))->get();
+            if ($committees) {
+                foreach ($committees as $committee) {
+                    $accNeighbours = $committee->members()->detach();
+                    // Delete old images to upload new
+                    if ($committee->committeePhotos()) {
+                        foreach ($committee->committeePhotos as $file) {
+                            if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                unlink(storage_path('app/'.$file->file_path));
+                            }
+                        }
+                        $committee->committeePhotos()->delete();
+                    }
+                    $committee->delete();
+                }
+                Log::info('Selected committees deleted successfully');
+                return $this->sendResponse([], 'Selected committees deleted successfully.');
+            } else {
+                return $this->sendError('Committees not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete committees due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete committees.');
         }
     }
 }

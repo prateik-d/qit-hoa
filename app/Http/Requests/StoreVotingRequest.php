@@ -24,7 +24,8 @@ class StoreVotingRequest extends FormRequest
     public function rules()
     {
         return [
-            'voting_category_id' => 'required',
+            'voting_category_id' => 'required_without_all:title',
+            'title' => 'required_without_all:voting_category_id',
             'description' => 'required',
             'year' => 'required',
             'start_date' => 'required|date',

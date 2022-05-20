@@ -134,6 +134,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('categories', CategoryController::class);
     // Pet API Routes
     Route::resource('pets', PetController::class);
+    Route::delete('delete-all-pets', [PetController::class, 'deleteAll']);
     // Pet Type API Routes
     Route::resource('pet-types', PetTypeController::class);
     // State API Routes
@@ -149,8 +150,10 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('violation-types', ViolationTypeController::class);
     // LostFoundItem API Routes
     Route::resource('lost-found-items', LostFoundItemController::class);
+    Route::delete('delete-all-items', [LostFoundItemController::class, 'deleteAll']);
     // Members API Routes
     Route::resource('users', UserController::class);
+    Route::delete('delete-all-users', [UserController::class, 'deleteAll']);
     // To Get City List
     Route::get('/city-list/{id}', [UserController::class, 'getCityList']);
     // Permission API Routes
@@ -159,11 +162,13 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('permission-headings', PermissionHeadingController::class);
     // Ticket API Routes
     Route::resource('tickets', TicketController::class);
+    Route::delete('delete-all-tickets', [TicketController::class, 'deleteAll']);
     Route::put('/close-ticket/{id}', [TicketController::class, 'closeTicket']);
     // TicketCategory API Routes
     Route::resource('ticket-categories', TicketCategoryController::class);
     // Event API Routes
     Route::resource('events', EventController::class);
+    Route::delete('delete-all-events', [EventController::class, 'deleteAll']);
     Route::get('/archived-event', [EventController::class, 'archivedEvent']);
     Route::get('/upcoming-event', [EventController::class, 'upcomingEvent']);
     Route::put('/cancel-event/{id}', [EventController::class, 'cancelEvent']);
@@ -177,20 +182,25 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::post('/mark-as-read', [VehicleController::class, 'markNotification'])->name('markNotification');
     // Ammenity API Routes
     Route::resource('ammenities', AmmenityController::class);
+    Route::delete('delete-all-ammenities', [AmmenityController::class, 'deleteAll']);
     // Committee API Routes
     Route::resource('committees', CommitteeController::class);
+    Route::delete('delete-all-committees', [CommitteeController::class, 'deleteAll']);
     // Reservation API Routes
     Route::resource('reservations', ReservationController::class);
+    Route::delete('delete-all-reservations', [ReservationController::class, 'deleteAll']);
     Route::get('/notification', [ReservationController::class, 'notification']);
     Route::post('/mark-as-read', [ReservationController::class, 'markNotification'])->name('markNotification');
     // Document API Routes
     Route::resource('documents', DocumentController::class);
+    Route::delete('delete-all-documents', [DocumentController::class, 'deleteAll']);
     // Faq API Routes
     Route::resource('faqs', FaqController::class);
     // ImpLink API Routes
     Route::resource('imp-links', ImpLinkController::class);
     // Classified API Routes
     Route::resource('classifieds', ClassifiedController::class);
+    Route::delete('delete-all-classifieds', [ClassifiedController::class, 'deleteAll']);
     // ClassifiedCondition API Routes
     Route::resource('classified-conditions', ClassifiedConditionController::class);
     // ClassifiedCategory API Routes
@@ -203,4 +213,5 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('votings', VotingController::class);
     Route::delete('delete-all-votings', [VotingController::class, 'deleteAll']);
     Route::put('archived-votings/{id}', [VotingController::class, 'archivedVotings']);
+    Route::get('voting-status', [VotingController::class, 'status']);
 });

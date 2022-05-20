@@ -223,7 +223,7 @@ class ClassifiedController extends BaseController
         try {
             $classified = Classified::findOrFail($id);
             if ($classified) {
-                //Delete old images to upload new
+                // Delete old images
                 if ($classified->classifiedImages()) {
                     foreach ($classified->classifiedImages as $file) {
                         if (file_exists(storage_path('app/'.$file->file_path))) { 
@@ -241,6 +241,40 @@ class ClassifiedController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to delete classified item due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to delete classified item.');
+        }
+    }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $classifieds = Classified::whereIn('id',explode(",",$ids))->get();
+            if ($classifieds) {
+                foreach ($classifieds as $classified) {
+                    // Delete images
+                    if ($classified->classifiedImages()) {
+                        foreach ($classified->classifiedImages as $file) {
+                            if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                unlink(storage_path('app/'.$file->file_path));
+                            }
+                        }
+                        $classified->classifiedImages()->delete();
+                    }
+                    $classified->delete();
+                }
+                Log::info('Selected classifieds deleted successfully');
+                return $this->sendResponse([], 'Selected classifieds deleted successfully.');
+            } else {
+                return $this->sendError('Classifieds not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete classifieds due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete classifieds.');
         }
     }
 }

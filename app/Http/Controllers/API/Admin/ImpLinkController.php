@@ -160,4 +160,26 @@ class ImpLinkController extends BaseController
             return $this->sendError('Operation failed to delete imp-link.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $impLinks = ImpLink::whereIn('id',explode(",",$ids))->delete();
+            if ($impLinks) {
+                Log::info('Selected imp-links deleted successfully');
+                return $this->sendResponse([], 'Selected imp-links deleted successfully.');
+            } else {
+                return $this->sendError('Imp-links not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete imp-links due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete imp-links.');
+        }
+    }
 }

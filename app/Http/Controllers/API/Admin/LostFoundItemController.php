@@ -248,4 +248,38 @@ class LostFoundItemController extends BaseController
             return $this->sendError('Operation failed to delete item.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $lostFoundItem = LostFoundItem::whereIn('id',explode(",",$ids))->get();
+            if ($lostFoundItem) {
+                foreach ($lostFoundItem as $item) {
+                    if ($item->lostFoundItemImages()) {
+                        foreach ($item->lostFoundItemImages as $file) {
+                            if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                unlink(storage_path('app/'.$file->file_path));
+                            }
+                        }
+                        $item->lostFoundItemImages()->delete();
+                    }
+                    $item->delete();
+                }
+                Log::info('Selected items deleted successfully');
+                return $this->sendResponse([], 'Selected items deleted successfully.');
+            } else {
+                return $this->sendError('Items not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete acc-requests due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete acc-requests.');
+        }
+    }
+
 }

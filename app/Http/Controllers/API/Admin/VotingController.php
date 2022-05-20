@@ -83,18 +83,27 @@ class VotingController extends BaseController
         try {
             $input = $request->all();
             $input['added_by'] = Auth::guard('api')->user()->id;
-            $voting = Voting::create($input);
-            // $nominees = $input['nominee'];
-            // if (count($nominees)) {
-            //     $voting->nominees()->attach($nominees);
-            // }
-            if ($voting) {
-                //store voting option
-                $votingOption = [
-                    'voting_id' => $voting->id,
-                    'option' => $input['option']
+            if ($request->has('title')) {
+                $votingCategory = [
+                    'title' => $input['title'],
+                    'added_by' => $input['added_by'] 
                 ];
-                $saveVotingOption = VotingOption::create($votingOption);
+                $votingCategory = VotingCategory::firstOrCreate($votingCategory);
+                $input['voting_category_id'] = $votingCategory->id;
+            }
+            $voting = Voting::create($input);
+            if ($voting) {
+                if (count($input['nominee'])) {
+                    $voting->nominees()->attach($input['nominee']);
+                }
+                // store voting option
+                foreach ($input['option'] as $option) {
+                    $votingOption = [
+                        'voting_id' => $voting->id,
+                        'option' => $option
+                    ];
+                    $saveVotingOption = VotingOption::create($votingOption);
+                }
                 Log::info('Voting created successfully.');
                 return $this->sendResponse($voting, 'Voting created successfully.');
             } else {
@@ -205,6 +214,28 @@ class VotingController extends BaseController
         }
     }
     
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            $voting = Voting::where('status', $request->get('status'))->get();
+            if (count($voting)) {
+                Log::info('Showing votings for status: '.$request->get('status'));
+                return $this->sendResponse($voting, 'Votings retrieved successfully.');
+            } else {
+                return $this->sendError('Voting data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve voting data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve voting data, voting not found.');
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      *

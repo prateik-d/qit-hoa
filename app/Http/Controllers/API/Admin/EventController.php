@@ -330,4 +330,38 @@ class EventController extends BaseController
             return $this->sendError('Operation failed to delete event.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $events = Event::whereIn('id',explode(",",$ids))->get();
+            if ($events) {
+                foreach ($events as $event) {
+                    if ($event->eventImages()) {
+                        foreach ($event->eventImages as $file) {
+                            if (file_exists(storage_path('app/'.$file->event_photo_path))) { 
+                                unlink(storage_path('app/'.$file->event_photo_path));
+                            }
+                        }
+                        $event->eventImages()->delete();
+                    }
+                    $event->delete();
+                }
+                Log::info('Selected events deleted successfully');
+                return $this->sendResponse([], 'Selected events deleted successfully.');
+            } else {
+                return $this->sendError('Events not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete events due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete events.');
+        }
+    }
+
 }

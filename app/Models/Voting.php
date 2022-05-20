@@ -43,7 +43,7 @@ class Voting extends Model
 
     public function votingOption()
     {
-        return $this->hasOne(VotingOption::class);
+        return $this->hasMany(VotingOption::class);
     }
 
     public function votes()

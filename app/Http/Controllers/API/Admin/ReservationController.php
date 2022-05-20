@@ -217,4 +217,27 @@ class ReservationController extends BaseController
             return $this->sendError('Operation failed to delete reservation.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $reservations = Reservation::whereIn('id',explode(",",$ids))->delete();
+            if ($reservations) {
+                Log::info('Selected reservations deleted successfully');
+                return $this->sendResponse([], 'Selected reservations deleted successfully.');
+            } else {
+                return $this->sendError('Reservations not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete reservations due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete reservations.');
+        }
+    }
+
 }

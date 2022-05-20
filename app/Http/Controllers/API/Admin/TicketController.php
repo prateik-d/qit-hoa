@@ -266,4 +266,38 @@ class TicketController extends BaseController
             return $this->sendError('Operation failed to delete ticket.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $tickets = Ticket::whereIn('id',explode(",",$ids))->get();
+            if ($tickets) {
+                foreach ($tickets as $ticket) {
+                    if ($ticket->ticketImages()) {
+                        foreach ($ticket->ticketImages as $file) {
+                            if (file_exists(storage_path('app/'.$file->img_file_path))) { 
+                                unlink(storage_path('app/'.$file->img_file_path));
+                            }
+                        }
+                        $ticket->ticketImages()->delete();
+                    }
+                    $ticket->delete();
+                }
+                Log::info('Selected tickets deleted successfully');
+                return $this->sendResponse([], 'Selected tickets deleted successfully.');
+            } else {
+                return $this->sendError('Tickets not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete tickets due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete tickets.');
+        }
+    }
+
 }
