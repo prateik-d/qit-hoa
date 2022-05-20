@@ -120,9 +120,10 @@ Route::middleware('auth:api')->group( function () {
 Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // ACC Requests API Routes
     Route::resource('acc-requests', ACCRequestController::class);
+    Route::delete('delete-all-acc-requests', [ACCRequestController::class, 'deleteAll']);
     // Listing of received request
     Route::post('/received-request', [ACCRequestController::class, 'receivedApprovalRequest']);
-    //  Listing of my request
+    // Listing of my request
     Route::post('/my-acc-request', [ACCRequestController::class, 'myAccRequest']);
     // Approve or reject received request 
     Route::put('/my-approval/{id}', [ACCRequestController::class, 'myApproval']);
@@ -141,6 +142,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('roles', RoleController::class);
     // Violation API Routes
     Route::resource('violations', ViolationController::class);
+    Route::delete('delete-all-violations', [ViolationController::class, 'deleteAll']);
     Route::put('/post-response/{id}', [ViolationController::class, 'postResponse']);
     Route::post('/mark-as-read', [ViolationController::class, 'markNotification'])->name('markNotification');
     // Violation Type API Routes
@@ -199,4 +201,6 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('voting-categories', VotingCategoryController::class);
     // Voting API Routes
     Route::resource('votings', VotingController::class);
+    Route::delete('delete-all-votings', [VotingController::class, 'deleteAll']);
+    Route::put('archived-votings/{id}', [VotingController::class, 'archivedVotings']);
 });

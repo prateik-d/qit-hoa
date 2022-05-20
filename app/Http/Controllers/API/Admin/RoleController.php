@@ -42,7 +42,18 @@ class RoleController extends BaseController
      */
     public function create()
     {
-        //
+        try {
+            $permission = Permission::get();
+            if (count($permission)) {
+                Log::info('Permission data displayed successfully.');
+                return $this->sendResponse(RoleResource::collection($permission), 'Permission data retrieved successfully.');
+            } else {
+                return $this->sendError('No data found for permission.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve permission data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve permission data.');
+        }
     }
 
     /**

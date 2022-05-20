@@ -15,11 +15,15 @@ class DatabaseSeeder extends Seeder
     {
         \App\Models\User::factory(1)->create();
         $this->call(CategoriesTableSeeder::class);
+        $this->call(PermissionHeadingTableSeeder::class);
+        $this->call(PermissionTableSeeder::class);
         $this->call(RoleTableSeeder::class);
         $this->call(TicketCategoryTableSeeder::class);
         $this->call(VehicleColorTableSeeder::class);
         $this->call(VehicleMakeTableSeeder::class);
         $this->call(VehicleModelTableSeeder::class);
+        $this->call(ViolationTypeTableSeeder::class);
+        $this->call(VotingCategoryTableSeeder::class);
         $this->call(StateTableSeeder::class);
         // Seeder of Cities by States
         //AL - Alabama

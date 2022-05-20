@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\AccRequest;
 use App\Models\AccDocument;
+use App\Models\User;
 use App\Http\Resources\ACCRequest as ACCRequestResource;
 use App\Http\Requests\StoreACCRequest;
 use App\Exports\AccRequestExport;
@@ -24,13 +25,24 @@ class ACCRequestController extends BaseController
     public function index(Request $request)
     {
         try {
-            $accRequest = AccRequest::where('title', 'LIKE', '%'.$request->get('title'). '%')
-                ->where('created_at', 'LIKE' , '%'.$request->get('date').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
+            if ($request->in_active_user) {
+                if ($request->get('in_active_user') == 'on') {
+                    $user = User::with('usersAccRequests')->where('status', 0);
+                }
+            } else {
+                $user = User::with('usersAccRequests');
+            }
+            $accRequest = $user->whereHas('usersAccRequests', function ($query) use($request) {
+                $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
+                ->where('email', 'LIKE', '%'.$request->get('email'). '%')
+                ->where('address', 'LIKE', '%'.$request->get('address'). '%');
+           })->get();
 
             if (count($accRequest)) {
                 Log::info('ACC-request data displayed successfully.');
-                return $this->sendResponse(ACCRequestResource::collection($accRequest), 'ACC-request data retrieved successfully.');
+                return $this->sendResponse($accRequest, 'ACC-request data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for acc-request');
             }
@@ -395,6 +407,40 @@ class ACCRequestController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to delete acc-request due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to delete acc-request.');
+        }
+    }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $accRequest = ACCRequest::whereIn('id',explode(",",$ids))->get();
+            if ($accRequest) {
+                foreach ($accRequest as $acc) {
+                    $accNeighbours = $acc->users()->detach();
+                    if ($acc->accDocuments()) {
+                        foreach ($acc->accDocuments as $file) {
+                            if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                unlink(storage_path('app/'.$file->file_path));
+                            }
+                        }
+                        $acc->accDocuments()->delete();
+                    }
+                    $acc->delete();
+                }
+                Log::info('Selected acc-requests deleted successfully');
+                return $this->sendResponse([], 'Selected acc-requests deleted successfully.');
+            } else {
+                return $this->sendError('ACC-request not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete acc-requests due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete acc-requests.');
         }
     }
 }

@@ -35,4 +35,9 @@ class AccRequest extends Model
     {
         return $this->belongsToMany(User::class, AccRequestUser::class, 'acc_request_id', 'neighbour_id')->withTimestamps();
     }
+
+    public function createdByUser()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

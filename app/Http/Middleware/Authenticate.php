@@ -12,11 +12,11 @@ class Authenticate extends Middleware
     {
         $token = $request->bearerToken();
         if ($token) {
-            if(Auth::guard('api')->check() && Auth::guard('api')->user()) {
+            if (Auth::guard('api')->check() && Auth::guard('api')->user()) {
                 // $user = Auth::guard('api')->user();
                 return $next($request);
             } else {
-                return response([
+                return response ([
                     'message' => 'unauthorised'
                 ], 403);
             }

@@ -92,6 +92,11 @@ class User extends Authenticatable
         return $this->belongsToMany(AccRequest::class, AccRequestUser::class, 'neighbour_id','acc_request_id')->withPivot('id', 'approval_status', 'neighbour_note')->withTimestamps();
     }
 
+    public function usersAccRequests()
+    {
+        return $this->hasMany(AccRequest::class, 'user_id');
+    }
+
     public function pets()
     {
         return $this->hasMany(Pet::class, 'owner_id');

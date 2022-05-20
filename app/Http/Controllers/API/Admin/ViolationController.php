@@ -28,17 +28,28 @@ class ViolationController extends BaseController
         try {
             $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
 
-            $violations = Violation::with('violationType')
-                        ->where('status', 'open')
-                        ->where('description', 'LIKE', '%'.$request->get('title'). '%')
-                        ->where('violation_date', 'LIKE', '%'.$request->get('date'). '%')
-                        ->where('violation_type_id', 'LIKE', '%'.$request->get('type'). '%')
-                        ->where('status', 'LIKE', '%'.$request->get('status'). '%')->get();
-               
+            // Inactive user checkbox is selected
+            if ($request->in_active_user) {
+                if ($request->get('in_active_user') == 'on') {
+                    $user = User::with('violations')->where('status', 0);
+                }
+            } else {
+                $user = User::with('violations');
+            }
+
+            $hasViolations = $user->whereHas('violations', function ($query) use($request) {
+                $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
+                ->where('email', 'LIKE', '%'.$request->get('email'). '%')
+                ->where('address', 'LIKE', '%'.$request->get('address'). '%')
+                ->where('violations.violation_type_id', 'LIKE' , '%'.$request->get('type').'%');
+            })->get();
+
             if (count($violationTypes)) {
-                if (count($violations)) {
+                if (count($hasViolations)) {
                     Log::info('Violations data displayed successfully.');
-                    return $this->sendResponse(ViolationResource::collection($violations), 'Violations data retrieved successfully.');
+                    return $this->sendResponse(['violationTypes' => $violationTypes, 'hasViolations' => $hasViolations], 'Violations data retrieved successfully.');
                 } else {
                     return $this->sendError('No data found for violations');
                 }
@@ -325,4 +336,40 @@ class ViolationController extends BaseController
             return $this->sendError('Operation failed to delete violation.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $violation = Violation::whereIn('id',explode(",",$ids))->get();
+
+            if ($violation) {
+                foreach ($violation as $selectedViolations) {
+                    // Delete old documents to upload new
+                    if ($selectedViolations->violationDocuments()) {
+                        foreach ($selectedViolations->violationDocuments as $file) {
+                            if (file_exists(storage_path('app/'.$file->file_path))) { 
+                                unlink(storage_path('app/'.$file->file_path));
+                            }
+                        }
+                        $selectedViolations->violationDocuments()->delete();
+                    }
+                    $selectedViolations->delete();
+                }
+                Log::info('Selected violation deleted successfully');
+                return $this->sendResponse([], 'Selected violation deleted successfully.');
+            } else {
+                return $this->sendError('Violation not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete violations due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete violations.');
+        }
+    }
+
 }

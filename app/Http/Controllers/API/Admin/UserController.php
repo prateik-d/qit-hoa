@@ -35,10 +35,10 @@ class UserController extends BaseController
 
             if ($request->pet_owner) {
                 if ($input['pet_owner'] == 'on') {
-                    $pets = Pet::with('user')->get();
+                    $pets = Pet::with('owner')->get();
                     foreach ($pets as $petOwners) 
                     {
-                        $result = $petOwners->whereHas('user', function($query) use($request) {
+                        $result = $petOwners->whereHas('owner', function($query) use($request) {
                             $query->where('first_name', 'LIKE' , '%'.$request->get('name').'%')
                             ->orwhere('last_name', 'LIKE', '%'.$request->get('name'). '%')
                             ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
@@ -49,7 +49,7 @@ class UserController extends BaseController
                     }
                     $users = array();
                     foreach ($result as $data) {
-                        $user = $data->user;
+                        $user = $data->owner;
                         array_push($users,$user);
                     }
                 }

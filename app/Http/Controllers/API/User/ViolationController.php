@@ -36,9 +36,10 @@ class ViolationController extends BaseController
                         ->where('status', 'LIKE', '%'.$request->get('status'). '%')->get();
                 
             if (count($violationTypes)) {
+                return $this->sendResponse($violationTypes, 'Violation-types data retrieved successfully.');
                 if (count($violations)) {
                     Log::info('Violations data displayed successfully.');
-                    return $this->sendResponse(ViolationResource::collection($violations), 'Violations data retrieved successfully.');
+                    return $this->sendResponse([$violationTypes, 'Violation-types data retrieved successfully.', ViolationResource::collection($violations), 'Violations data retrieved successfully.']);
                 } else {
                     return $this->sendError('No data found for violations');
                 }
