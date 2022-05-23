@@ -53,7 +53,8 @@ class ClassifiedController extends BaseController
     public function create()
     {
         try {
-            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->get();
+            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->pluck('category', 'id');
+            $user = User::where('status', 1)->orderBy('first_name','asc')->get();
             if (count($categories)) {
                 Log::info('Classified categories displayed successfully.');
                 return $this->sendResponse($categories, 'Classified categories retrieved successfully.');
@@ -77,6 +78,13 @@ class ClassifiedController extends BaseController
         try {
             $input = $request->all();
             $input['added_by'] = Auth::guard('api')->user()->id;
+            if ($request->active_status) {
+                if ($input['active_status'] == 'yes') {
+                    $input['active_status'] = 1;
+                } else {
+                    $input['active_status'] = 0;
+                }
+            }
             $classified = Classified::create($input);
             if ($classified) {
                 if ($request->hasFile('images')) {

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\DocumentCategory;
+use App\Models\DocumentFile;
 
 class Document extends Model
 {
@@ -29,5 +30,10 @@ class Document extends Model
     public function documentCategory()
     {
         return $this->belongsTo(DocumentCategory::class);
+    }
+
+    public function documentFiles()
+    {
+        return $this->hasMany(DocumentFile::class);
     }
 }

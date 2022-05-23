@@ -146,4 +146,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Document::class, 'added_by');
     }
+
+    public function classifiedsPostedBy()
+    {
+        return $this->hasMany(Classified::class, 'posted_by');
+    }
 }

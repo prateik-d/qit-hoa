@@ -124,9 +124,13 @@ class VotingController extends BaseController
     public function show($id)
     {
         try {
-            $voting = Voting::findOrFail($id);
-            Log::info('Showing voting data for voting id: '.$id);
-            return $this->sendResponse($voting, 'Voting retrieved successfully.');
+            $voting = Voting::find($id);
+            if ($voting) {
+                Log::info('Showing voting data for voting id: '.$id);
+                return $this->sendResponse($voting, 'Voting retrieved successfully.');
+            } else {
+                return $this->sendError('Voting data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to retrieve voting data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve voting data, voting not found.');
@@ -170,10 +174,10 @@ class VotingController extends BaseController
             if ($voting) {
                 $update = $voting->fill($input)->save();
                 if ($update) {
-                    // $nominees = $input['nominee'];
-                    // if (count($nominees)) {
-                    //     $voting->nominees()->sync($nominees);
-                    // }
+                    $nominees = $input['nominee'];
+                    if (count($nominees)) {
+                        $voting->nominees()->sync($nominees);
+                    }
                     $VotingOption = VotingOption::where('voting_id', $id)->first();
                     $saveVotingOption = $VotingOption->update(['option' => $input['option']]);
                     Log::info('Voting updated successfully.');

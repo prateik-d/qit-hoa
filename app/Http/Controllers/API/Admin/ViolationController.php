@@ -147,9 +147,13 @@ class ViolationController extends BaseController
     public function show($id)
     {
         try {
-            $violation = Violation::findOrFail($id);
-            Log::info('Showing violation data for violation id: '.$id);
-            return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+            $violation = Violation::find($id);
+            if ($violation) {
+                Log::info('Showing violation data for violation id: '.$id);
+                return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+            } else {
+                return $this->sendError('Violation data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to retrieve violation data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve violation data, violation not found.');
@@ -248,9 +252,13 @@ class ViolationController extends BaseController
     public function edit($id)
     {
         try {
-            $violation = Violation::findOrFail($id);
-            Log::info('Edit violation data for violation id: '.$id);
-            return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+            $violation = Violation::find($id);
+            if ($violation) {
+                Log::info('Edit violation data for violation id: '.$id);
+                return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+            } else {
+                return $this->sendError('Violation data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to edit violation data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit violation data, violation not found.');
@@ -268,7 +276,7 @@ class ViolationController extends BaseController
     {
         try {
             $input = $request->except(['_method']);
-            $violation = Violation::findOrFail($id);
+            $violation = Violation::find($id);
             if ($violation) {
                 $update = $violation->fill($input)->save();
                 if ($update) {
@@ -311,7 +319,7 @@ class ViolationController extends BaseController
     public function destroy($id)
     {
         try {
-            $violation = Violation::findOrFail($id);
+            $violation = Violation::find($id);
             if ($violation) {
                 // Delete old documents to upload new
                 if ($violation->violationDocuments()) {

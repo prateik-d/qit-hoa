@@ -17,7 +17,7 @@ class CreateDocumentFilesTable extends Migration
             $table->id();
             $table->unsignedBigInteger('document_id');
             $table->string('file_path');
-            $table->tinyInteger('status');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }

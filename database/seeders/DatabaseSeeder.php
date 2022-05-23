@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionHeadingTableSeeder::class);
         $this->call(PermissionTableSeeder::class);
         $this->call(RoleTableSeeder::class);
+        $this->call(ClassifiedCategoryTableSeeder::class);
+        $this->call(DocumentCategoryTableSeeder::class);
         $this->call(TicketCategoryTableSeeder::class);
         $this->call(VehicleColorTableSeeder::class);
         $this->call(VehicleMakeTableSeeder::class);

@@ -193,11 +193,16 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::post('/mark-as-read', [ReservationController::class, 'markNotification'])->name('markNotification');
     // Document API Routes
     Route::resource('documents', DocumentController::class);
+    Route::get('documents-type', [DocumentController::class, 'filterByType']);
+    Route::get('documents-year', [DocumentController::class, 'filterByYear']);
     Route::delete('delete-all-documents', [DocumentController::class, 'deleteAll']);
     // Faq API Routes
     Route::resource('faqs', FaqController::class);
+    Route::delete('delete-all-faqs', [FaqController::class, 'deleteAll']);
     // ImpLink API Routes
     Route::resource('imp-links', ImpLinkController::class);
+    Route::get('imp-links-status', [ImpLinkController::class, 'status']);
+    Route::delete('delete-all-imp-links', [ImpLinkController::class, 'deleteAll']);
     // Classified API Routes
     Route::resource('classifieds', ClassifiedController::class);
     Route::delete('delete-all-classifieds', [ClassifiedController::class, 'deleteAll']);

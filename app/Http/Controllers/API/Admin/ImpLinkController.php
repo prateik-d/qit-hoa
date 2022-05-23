@@ -22,8 +22,17 @@ class ImpLinkController extends BaseController
     {
         try {
             $impLink = ImpLink::where('description', 'LIKE', '%'.$request->get('description'). '%')
-            ->where('url', 'LIKE' , '%'.$request->get('url').'%')
-            ->get();
+            ->where('url', 'LIKE' , '%'.$request->get('url').'%');
+
+            if ($request->status) {
+                if ($request->get('status') == 'active') {
+                    $impLink = $impLink->where('status', 1);
+                } else {
+                    $impLink = $impLink->where('status', 0);
+                }
+            }
+            
+            $impLink = $impLink->get();
 
             if (count($impLink)) {
                 Log::info('Imp-link data displayed successfully.');
@@ -57,6 +66,13 @@ class ImpLinkController extends BaseController
     {
         try {
             $input = $request->all();
+            if ($request->status) {
+                if ($request->get('status') == 'active') {
+                    $input['status'] = 1;
+                } else {
+                    $input['status'] = 0;
+                }
+            }
             $input['added_by'] = Auth::guard('api')->user()->id;
             $impLink = ImpLink::create($input);
             if ($impLink) {
@@ -80,9 +96,13 @@ class ImpLinkController extends BaseController
     public function show($id)
     {
         try {
-            $impLink = ImpLink::findOrFail($id);
-            Log::info('Showing imp-link data for impLink id: '.$id);
-            return $this->sendResponse(new ImpLinkResource($impLink), 'Imp-link retrieved successfully.');
+            $impLink = ImpLink::where('status', 1)->find($id);
+            if ($impLink) {
+                Log::info('Showing imp-link data for imp-link id: '.$id);
+                return $this->sendResponse(new ImpLinkResource($impLink), 'Imp-link retrieved successfully.');
+            } else {
+                return $this->sendError('Imp-link data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to retrieve imp-link data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve imp-link data, imp-link not found.');
@@ -98,9 +118,13 @@ class ImpLinkController extends BaseController
     public function edit($id)
     {
         try {
-            $impLink = ImpLink::findOrFail($id);
-            Log::info('Edit imp-link data for impLink id: '.$id);
-            return $this->sendResponse(new ImpLinkResource($impLink), 'Imp-link retrieved successfully.');
+            $impLink = ImpLink::where('status', 1)->find($id);
+            if ($impLink) {
+                Log::info('Edit imp-link data for impLink id: '.$id);
+                return $this->sendResponse(new ImpLinkResource($impLink), 'Imp-link retrieved successfully.');
+            } else {
+                return $this->sendError('Imp-link data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to edit imp-link data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit imp-link data, imp-link not found.');
@@ -114,11 +138,11 @@ class ImpLinkController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreImpLinkRequest $request, $id)
     {
         try {
             $input = $request->except(['_method']);
-            $impLink = ImpLink::findOrFail($id);
+            $impLink = ImpLink::find($id);
             if ($impLink) {
                 $update = $impLink->fill($input)->save();
                 if ($update) {
@@ -137,6 +161,33 @@ class ImpLinkController extends BaseController
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            if ($request->get('status') == 'active') {
+                $impLink = ImpLink::where('status', 1)->get();
+            } else {
+                $impLink = ImpLink::where('status', 0)->get();
+            }
+
+            if (count($impLink)) {
+                Log::info('Showing imp-links for status: '.$request->get('status'));
+                return $this->sendResponse($impLink, 'Imp-links retrieved successfully.');
+            } else {
+                return $this->sendError('Imp-links data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve imp-links data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve imp-links data, imp-links not found.');
+        }
+    }
+    
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
@@ -145,7 +196,7 @@ class ImpLinkController extends BaseController
     public function destroy($id)
     {
         try {
-            $impLink = ImpLink::findOrFail($id);
+            $impLink = ImpLink::find($id);
             if ($impLink) {
                 if ($impLink->delete()){
                     return $this->sendResponse([], 'Imp-link deleted successfully.');

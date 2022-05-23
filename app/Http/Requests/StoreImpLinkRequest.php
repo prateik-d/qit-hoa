@@ -24,10 +24,10 @@ class StoreImpLinkRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
             'title' => 'required|unique:imp_links,title,' . \Request('id') . ',id',
             'description' => 'required',
             'url' => 'required',
+            'url' => 'required|unique:imp_links,url,' . \Request('id') . ',id',
         ];
     }
 }

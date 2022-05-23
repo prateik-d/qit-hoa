@@ -21,7 +21,7 @@ class FaqController extends BaseController
     public function index()
     {
         try {
-            $faq = Faq::all();
+            $faq = Faq::where('status', 1)->get();
             if (count($faq)) {
                 Log::info('Faq data displayed successfully.');
                 return $this->sendResponse(FaqResource::collection($faq), 'Faq data retrieved successfully.');
@@ -54,6 +54,13 @@ class FaqController extends BaseController
     {
         try {
             $input = $request->all();
+            if ($request->status) {
+                if ($request->get('status') == 'active') {
+                    $input['status'] = 1;
+                } else {
+                    $input['status'] = 0;
+                }
+            }
             $input['added_by'] = Auth::guard('api')->user()->id;
             $faq = Faq::create($input);
             if ($faq) {
@@ -77,9 +84,13 @@ class FaqController extends BaseController
     public function show($id)
     {
         try {
-            $faq = Faq::findOrFail($id);
-            Log::info('Showing faq data for faq id: '.$id);
-            return $this->sendResponse(new FaqResource($faq), 'Faq retrieved successfully.');
+            $faq = Faq::where('status', 1)->find($id);
+            if ($faq) {
+                Log::info('Showing faq data for faq id: '.$id);
+                return $this->sendResponse(new FaqResource($faq), 'Faq retrieved successfully.');
+            } else {
+                return $this->sendError('Faq data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to retrieve faq data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve faq data, faq not found.');
@@ -95,9 +106,13 @@ class FaqController extends BaseController
     public function edit($id)
     {
         try {
-            $faq = Faq::findOrFail($id);
-            Log::info('Edit faq data for faq id: '.$id);
-            return $this->sendResponse(new FaqResource($faq), 'Faq retrieved successfully.');
+            $faq = Faq::where('status', 1)->find($id);
+            if ($faq) {
+                Log::info('Edit faq data for faq id: '.$id);
+                return $this->sendResponse(new FaqResource($faq), 'Faq retrieved successfully.');
+            } else {
+                return $this->sendError('Faq data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to edit faq data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit faq data, faq not found.');
@@ -115,7 +130,7 @@ class FaqController extends BaseController
     {
         try {
             $input = $request->except(['_method']);
-            $faq = Faq::findOrFail($id);
+            $faq = Faq::where('status', 1)->find($id);
             if ($faq) {
                 $update = $faq->fill($input)->save();
                 if ($update) {
@@ -142,7 +157,7 @@ class FaqController extends BaseController
     public function destroy($id)
     {
         try {
-            $faq = Faq::findOrFail($id);
+            $faq = Faq::find($id);
             if ($faq) {
                 if ($faq->delete()) {
                     Log::info('Faq deleted successfully for faq id: '.$id);
@@ -158,4 +173,27 @@ class FaqController extends BaseController
             return $this->sendError('Operation failed to delete faq.');
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->ids;
+            $faqs = Faq::whereIn('id',explode(",",$ids))->delete();
+            if ($faqs) {
+                Log::info('Selected faqs deleted successfully');
+                return $this->sendResponse([], 'Selected faqs deleted successfully.');
+            } else {
+                return $this->sendError('Faqs not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete faqs due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete faqs.');
+        }
+    }
+
 }

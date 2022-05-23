@@ -13,6 +13,7 @@ use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedCondition;
 use App\Http\Resources\Classified as ClassifiedResource;
 use App\Http\Requests\StoreClassifiedRequest; 
+use App\Models\User;
 
 class ClassifiedController extends BaseController
 {
@@ -24,16 +25,36 @@ class ClassifiedController extends BaseController
     public function index(Request $request)
     {
         try {
-            $categories = ClassifiedCategory::where('status',1)->orderBy('category','asc')->get();
+            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->pluck('category', 'id');
+            $classified = Classified::with('postedBy', 'classifiedCategory');
+            // Inactive user checkbox is selected
+            if ($request->category) {
+                if ($request->get('category') == 'active') {
+                    $classified = Classified::with('postedBy', 'classifiedCategory')->whereHas('classifiedCategory', function($query) use($request) {
+                        $query->where('status', 1);
+                    });
+                } else {
+                    $classified = Classified::with('postedBy', 'classifiedCategory')->whereHas('classifiedCategory', function($query) use($request) {
+                        $query->where('status', 0);
+                    });
+                }
+            }
 
-            $classified = Classified::where('title', 'LIKE', '%'.$request->get('item'). '%')
-                ->where('classified_category_id', 'LIKE' , '%'.$request->get('category').'%')
-                ->where('posted_by', 'LIKE' , '%'.$request->get('posted_by').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
+            $classified = $classified->whereHas('postedBy', function($query) use($request) {
+                $query->where('title', 'LIKE', '%'.$request->get('item'). '%')                                
+                ->where('users.first_name', 'LIKE' , '%'.$request->get('posted_by').'%')
+                ->orWhere('users.last_name', 'LIKE' , '%'.$request->get('posted_by').'%');
+            });
+
+            if ($request->status) {
+                $classified = $classified->where('status', $request->get('status'))->get();
+            } else {
+                $classified = $classified->get();
+            }
 
             if (count($classified)) {
                 Log::info('Classified item displayed successfully.');
-                return $this->sendResponse([$categories, $classified], 'Classified item retrieved successfully.');
+                return $this->sendResponse(['categories' => $categories, 'classified' => $classified], 'Classified item retrieved successfully.');
             } else {
                 return $this->sendError('No data found for classified item.');
             }
@@ -48,13 +69,19 @@ class ClassifiedController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         try {
-            $categories = ClassifiedCategory::where('status',1)->orderBy('category','asc')->get();
-            if (count($categories)) {
+            $categories = ClassifiedCategory::where('status', 1)->orderBy('category','asc')->pluck('category', 'id');
+            $users = User::where('status', 1)->where('first_name', 'LIKE' , '%'.$request->get('name').'%')
+            ->where('last_name', 'LIKE' , '%'.$request->get('name').'%')
+            ->where('address', 'LIKE' , '%'.$request->get('address').'%')
+            ->where('email', 'LIKE' , '%'.$request->get('email').'%')
+            ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')->get();
+
+            if (count($categories) && count($users)) {
                 Log::info('Classified categories displayed successfully.');
-                return $this->sendResponse($categories, 'Classified categories retrieved successfully.');
+                return $this->sendResponse(['categories' => $categories, 'users' =>  $users], 'Classified categories retrieved successfully.');
             } else {
                 return $this->sendError('No data found for classified categories.');
             }
@@ -74,6 +101,14 @@ class ClassifiedController extends BaseController
     {
         try {
             $input = $request->all();
+            // Active status
+            if ($request->active_status) {
+                if ($request->get('active_status') == 'yes') {
+                    $input['active_status'] == 1;
+                } else {
+                    $input['active_status'] == 0;
+                }
+            }
             $input['added_by'] = Auth::guard('api')->user()->id;
             $classified = Classified::create($input);
             if ($classified) {
@@ -140,9 +175,13 @@ class ClassifiedController extends BaseController
     public function show($id)
     {
         try {
-            $classified = Classified::findOrFail($id);
-            Log::info('Showing classified item for item id: '.$id);
-            return $this->sendResponse($classified, 'Classified item retrieved successfully.');
+            $classified = Classified::find($id);
+            if ($classified) {
+                Log::info('Showing classified item for item id: '.$id);
+                return $this->sendResponse($classified, 'Classified item retrieved successfully.');
+            } else {
+                return $this->sendError('Classified data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to retrieve classified item due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve classified item, item not found.');
@@ -158,9 +197,13 @@ class ClassifiedController extends BaseController
     public function edit($id)
     {
         try {
-            $classified = Classified::findOrFail($id);
-            Log::info('Retrieved classified item to edit for item id: '.$id);
-            return $this->sendResponse($classified, 'Classified item retrieved successfully.');
+            $classified = Classified::find($id);
+            if ($classified) {
+                Log::info('Retrieved classified item to edit for item id: '.$id);
+                return $this->sendResponse($classified, 'Classified item retrieved successfully.');
+            } else {
+                return $this->sendError('Classified data not found.');     
+            }
         } catch (Exception $e) {
             Log::error('Failed to edit classified item due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit classified item, item not found.');
@@ -178,7 +221,7 @@ class ClassifiedController extends BaseController
     {
         try {
             $input = $request->except(['_method']);
-            $classified = Classified::findOrFail($id);
+            $classified = Classified::find($id);
             if ($classified) {
                 $update = $classified->fill($input)->save();
                 if ($update) {
@@ -221,7 +264,7 @@ class ClassifiedController extends BaseController
     public function destroy($id)
     {
         try {
-            $classified = Classified::findOrFail($id);
+            $classified = Classified::find($id);
             if ($classified) {
                 // Delete old images
                 if ($classified->classifiedImages()) {

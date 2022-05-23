@@ -46,4 +46,9 @@ class Classified extends Model
     {
         return $this->belongsTo(ClassifiedCondition::class);
     }
+
+    public function postedBy()
+    {
+        return $this->belongsTo(User::class, 'posted_by');
+    }
 }
