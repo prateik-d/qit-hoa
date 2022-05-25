@@ -259,7 +259,7 @@ class ACCRequestController extends BaseController
     {
         try {
             $input = $request->all();
-            $accRequest = ACCRequest::findOrFail($id);
+            $accRequest = ACCRequest::find($id);
             if ($accRequest) {
                 if (Auth::guard('api')->user()->id == $input['user_id']) {
                     $update = $accRequest->fill($input)->save();
@@ -338,6 +338,28 @@ class ACCRequestController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to update acc-request data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to update acc-request.');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            $accRequest = ACCRequest::where('status', $request->get('status'))->get();
+            if (count($accRequest)) {
+                Log::info('Showing acc-requests for status: '.$request->get('status'));
+                return $this->sendResponse($violation, 'acc-requests retrieved successfully.');
+            } else {
+                return $this->sendError('ACC-requests data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve acc-requests data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve acc-requests data, acc-requests not found.');
         }
     }
 

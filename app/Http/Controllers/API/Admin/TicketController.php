@@ -236,6 +236,30 @@ class TicketController extends BaseController
             return $this->sendError('Operation failed to close ticket.');
         }
     }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            $tickets = Ticket::where('status', $request->get('status'))->get();
+            
+            if (count($tickets)) {
+                Log::info('Showing tickets for status: '.$request->get('status'));
+                return $this->sendResponse($tickets, 'Tickets retrieved successfully.');
+            } else {
+                return $this->sendError('Tickets data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve tickets data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve tickets data, tickets not found.');
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      *

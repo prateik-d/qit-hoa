@@ -31,7 +31,7 @@ class EventController extends BaseController
             ->where('start_datetime', 'LIKE' , '%'.$request->get('start_date').'%')
             ->where('end_datetime', 'LIKE' , '%'.$request->get('end_date').'%')
             ->where('event_location_id', 'LIKE', '%'.$request->get('location'). '%')
-            ->where('status', 'LIKE', '%'.$request->get('status'). '%')
+            ->where('status', $request->get('status'))
             ->get();
 
             if (count($locations)) {
@@ -299,6 +299,27 @@ class EventController extends BaseController
         }
     }
 
+/**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            $event = Event::where('status', $request->get('status'))->get();
+            if (count($event)) {
+                Log::info('Showing events for status: '.$request->get('status'));
+                return $this->sendResponse($event, 'Events retrieved successfully.');
+            } else {
+                return $this->sendError('Event data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve event data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve event data, event not found.');
+        }
+    }
 
     /**
      * Remove the specified resource from storage.

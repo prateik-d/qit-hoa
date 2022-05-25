@@ -311,6 +311,28 @@ class ViolationController extends BaseController
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            $violation = Violation::where('status', $request->get('status'))->get();
+            if (count($violation)) {
+                Log::info('Showing violations for status: '.$request->get('status'));
+                return $this->sendResponse($violation, 'Violations retrieved successfully.');
+            } else {
+                return $this->sendError('Violations data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve violations data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve violations data, violations not found.');
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id

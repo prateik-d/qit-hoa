@@ -222,6 +222,52 @@ class PetController extends BaseController
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function filterByType(Request $request)
+    {
+        try {
+            $pets = Pet::where('pet_type_id', $request->get('type'))->get();
+            
+            if (count($pets)) {
+                Log::info('Showing pets for type: '.$request->get('type'));
+                return $this->sendResponse($pets, 'Pets retrieved successfully.');
+            } else {
+                return $this->sendError('Pets data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve pets data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve pets data, pets not found.');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function filterByBreed(Request $request)
+    {
+        try {
+            $pets = Pet::where('breed_id', $request->get('breed'))->get();
+            
+            if (count($pets)) {
+                Log::info('Showing pets for breed: '.$request->get('breed'));
+                return $this->sendResponse($pets, 'Pets retrieved successfully.');
+            } else {
+                return $this->sendError('Pets data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve pets data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve pets data, pets not found.');
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id

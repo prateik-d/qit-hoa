@@ -151,4 +151,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Classified::class, 'posted_by');
     }
+
+    public function belongsToItem()
+    {
+        return $this->hasMany(LostFoundItem::class, 'belongs_to');
+    }
+
+    public function claimedBy()
+    {
+        return $this->hasMany(LostFoundItem::class, 'claimed_by');
+    }
 }

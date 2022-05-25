@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Http\Controllers\API\Admin;
-   
+  
+use DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -27,18 +28,67 @@ class LostFoundItemController extends BaseController
                                     ->orderBy('category', 'ASC')
                                     ->get();
 
-            $lostItem = LostFoundItem::whereHas('lostFoundItemImages', function ($query) use($request) {
-                $query->where('item_title', 'LIKE', '%'.$request->get('title'). '%')
-                ->where('created_at', 'LIKE' , '%'.$request->get('date').'%')
-                ->where('item_type', 'LIKE' , '%'.$request->get('type').'%')
-                ->where('category_id', 'LIKE' , '%'.$request->get('category').'%')
-                ->where('status', 'LIKE' , '%'.$request->get('status').'%');
-            })->get();
+            $lostItem = LostFoundItem::with('category', 'itemBelongsTo', 'itemClaimedBy')
+            ->where('item_title', 'LIKE', '%'.$request->get('item'). '%')
+            ->whereHas('itemBelongsTo', function($query) use($request) {
+                $query->where('users.first_name', 'LIKE' , '%'.$request->get('creator').'%')
+                ->orWhere('users.last_name', 'LIKE' , '%'.$request->get('creator').'%');
+            })
+            ->doesntHave('itemClaimedBy')->orWhereHas('itemClaimedBy', function($query) use($request) {
+                $query->where('users.first_name', 'LIKE' , '%'.$request->get('claimed_by').'%');
+                //->orWhere('users.last_name', 'LIKE' , '%'.$request->get('claimed_by').'%');
+            })
+            ->when($request->has('type'), function ($query) use ($request) {
+                $query->where('item_type', $request->type);
+            })
+            ->when($request->has('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->when($request->has('date'), function ($query) use ($request) {
+                $query->where(DB::raw('DATE(`created_at`)'), $request->date);
+            });
+            
+
+            // $lostItem = $lostItem->whereHas('itemClaimedBy', function($query) use($request) {
+            //     $query->where('users.first_name', 'LIKE' , '%'.$request->get('claimed_by').'%')
+            //     ->orWhere('users.last_name', 'LIKE' , '%'.$request->get('claimed_by').'%');
+            // });  
+            
+            // ->where('created_at', 'LIKE' , '%'.$request->get('date').'%')                         
+            // ->where('claimed_by', 'LIKE' , '%'.$request->get('claimed_by').'%');
+
+            //$lostItem = $lostItem->where('item_type', $request->get('type'))->orWhere('status', $request->get('status'))->orWhere('created_at', $request->get('date'));
+            
+            // $lostItem = $lostItem->when($request->has('type'), function ($query) use ($request) {
+            //     $query->where('item_type', $request->type);
+            // })
+            // ->when($request->has('status'), function ($query) use ($request) {
+            //     $query->where('status', $request->status);
+            // })
+            // ->when($request->has('date'), function ($query) use ($request) {
+            //     $query->where('created_at', $request->date);
+            // });
+            // if ($request->date && $request->type && $request->status && $request->category) {
+            // } 
+            // else if ($request->date) {
+            //     $lostItem = $lostItem->where('date', $request->get('date'));
+            // } else if ($request->type) {
+            //     $lostItem = $lostItem->where('type', $request->get('type'));
+            // } else if ($request->status) {
+            //     $lostItem = $lostItem->where('status', $request->get('status'));
+            // } else if ($request->category) {
+            //     $lostItem = $lostItem->whereHas('category', function($query) use($request) {
+            //         $query->where('category', $request->get('category'));
+            //     });
+            // }
+    
+            $lostItem = $lostItem->get();
+            return $lostItem;
 
             if (count($categories)) {
                 if (count($lostItem)) {
                     Log::info('Lost-found-item data displayed successfully.');
-                    return $this->sendResponse([$categories, $lostItem], 'Lost-found-item data retrieved successfully.');
+                    return $this->sendResponse(['categories' => $categories, 'lostItem' => $lostItem], 'Lost-found-item data retrieved successfully.');
                 } else {
                     return $this->sendError('No data found for lost-found-item.');
                 }
@@ -184,7 +234,7 @@ class LostFoundItemController extends BaseController
     {
         try {
             $input = $request->except(['_method']);
-            $lostFoundItem = LostFoundItem::findOrFail($id);
+            $lostFoundItem = LostFoundItem::find($id);
             if ($lostFoundItem) {
                 $update = $lostFoundItem->fill($input)->save();
                 if ($update) {
@@ -219,6 +269,52 @@ class LostFoundItemController extends BaseController
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function filterByType(Request $request)
+    {
+        try {
+            $lostFoundItem = LostFoundItem::where('type', $request->get('type'))->get();
+            
+            if (count($lostFoundItem)) {
+                Log::info('Showing items for type: '.$request->get('type'));
+                return $this->sendResponse($lostFoundItem, 'Items retrieved successfully.');
+            } else {
+                return $this->sendError('Items data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve items data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve items data, items not found.');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            $lostFoundItem = LostFoundItem::where('status', $request->get('status'))->get();
+            
+            if (count($lostFoundItem)) {
+                Log::info('Showing items for status: '.$request->get('status'));
+                return $this->sendResponse($lostFoundItem, 'Items retrieved successfully.');
+            } else {
+                return $this->sendError('Items data not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve items data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve items data, items not found.');
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
@@ -227,7 +323,7 @@ class LostFoundItemController extends BaseController
     public function destroy($id)
     {
         try {
-            $lostFoundItem = LostFoundItem::findOrFail($id);
+            $lostFoundItem = LostFoundItem::find($id);
             if ($lostFoundItem) {
                 if ($lostFoundItem->lostFoundItemImages()) {
                     foreach ($lostFoundItem->lostFoundItemImages as $file) {

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\LostFoundItemImage;
+use App\Models\Category;
 
 class LostFoundItem extends Model
 {
@@ -41,5 +42,20 @@ class LostFoundItem extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function itemClaimedBy()
+    {
+        return $this->belongsTo(User::class, 'claimed_by');
+    }
+
+    public function itemBelongsTo()
+    {
+        return $this->belongsTo(User::class, 'belongs_to');
     }
 }
