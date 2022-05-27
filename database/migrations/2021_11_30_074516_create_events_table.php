@@ -20,8 +20,12 @@ class CreateEventsTable extends Migration
             $table->text('event_description');
             $table->dateTime('start_datetime');
             $table->dateTime('end_datetime');
-            $table->string('contact_phone',100);
-            $table->string('contact_email',100);
+            $table->string('contact_phone1',100);
+            $table->string('contact_email1',100);
+            $table->string('contact_phone2',100);
+            $table->string('contact_email2',100);
+            $table->string('contact_phone3',100);
+            $table->string('contact_email3',100);
             $table->unsignedBigInteger('event_location_id');
             $table->string('fb_url');
             $table->string('twitter_url');

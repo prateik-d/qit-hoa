@@ -29,7 +29,7 @@ class IsAdmin
                 }
             } else {
                 return response([
-                    'message' => 'User is unauthenticated, Please login and try again'
+                    'message' => 'admin is unauthenticated, Please login and try again'
                 ], 401);
             }
         }

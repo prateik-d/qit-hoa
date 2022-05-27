@@ -60,12 +60,12 @@ class EventController extends BaseController
     public function create()
     {
         try {
-            $locations = EventLocation::where('status', 1)->orderBy('location', 'asc')->get();
-            $categories = EventCategory::where('status', 1)->orderBy('category', 'asc')->get();
+            $locations = EventLocation::where('status', 1)->orderBy('location', 'asc')->pluck('location', 'id');
+            $categories = EventCategory::where('status', 1)->orderBy('category', 'asc')->pluck('category', 'id');
 
             if (count($locations) && count($categories)) {
                 Log::info('Event locations and categories displayed successfully.');
-                return $this->sendResponse([$locations, $categories], 'Event locations and categories displayed successfully.');
+                return $this->sendResponse(['categories' => $categories], 'Event locations and categories displayed successfully.');
             } else {
                 return $this->sendError('No data found for event locations and categories.');
             }

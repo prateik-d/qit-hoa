@@ -47,6 +47,10 @@ class RegisterController extends BaseController
      */
     public function login(Request $request)
     {
+        $this->validate($request, [
+            'email'           => 'required|max:255|email',
+            'password'           => 'required',
+        ]);
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $user = Auth::user(); 
             $success['token'] =  $user->createToken('MyApp')-> accessToken; 
@@ -64,10 +68,13 @@ class RegisterController extends BaseController
         $user = Auth::guard('api')->user();
 
         if ($user) {
-            $user->api_token = null;
+            $user->remember_token = null;
             $user->save();
+            return $this->sendResponse($success, 'User logged out successfully.');
         }
+        else { 
+            return $this->sendError('Failed to logout');
+        } 
 
-        return response()->json(['data' => 'User logged out.'], 200);
     }
 }

@@ -27,17 +27,25 @@ class EventController extends BaseController
         try {
             $locations = EventLocation::where('status', 1)->orderBy('location','asc')->get();
 
-            $events = Event::where('event_title', 'LIKE', '%'.$request->get('title'). '%')
-            ->where('start_datetime', 'LIKE' , '%'.$request->get('start_date').'%')
-            ->where('end_datetime', 'LIKE' , '%'.$request->get('end_date').'%')
-            ->where('event_location_id', 'LIKE', '%'.$request->get('location'). '%')
-            ->where('status', $request->get('status'))
-            ->get();
-
+            $events = Event::with('eventLocation')
+            ->where('event_title', 'LIKE', '%'.$request->get('title'). '%')
+            ->when($request->has('start_date'), function ($query) use ($request) {
+                $query->where('start_datetime', $request->start_date);
+            })
+            ->when($request->has('end_date'), function ($query) use ($request) {
+                $query->where('end_datetime', $request->end_date);
+            })
+            ->when($request->has('location'), function ($query) use ($request) {
+                $query->where('event_location_id', $request->location);
+            })
+            ->when($request->has('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })->get();
+            
             if (count($locations)) {
                 if (count($events)) {
                     Log::info('Event data displayed successfully.');
-                    return $this->sendResponse([$locations, $events], 'Events data retrieved successfully.');
+                    return $this->sendResponse(['events' => $events, 'locations' => $locations], 'Events data retrieved successfully.');
                 } else {
                     return $this->sendError('No data found for event.');
                 }
@@ -63,7 +71,7 @@ class EventController extends BaseController
 
             if (count($locations) && count($categories)) {
                 Log::info('Event locations and categories displayed successfully.');
-                return $this->sendResponse([$locations, $categories], 'Event locations and categories displayed successfully.');
+                return $this->sendResponse(['locations' => $locations, 'categories' => $categories], 'Event locations and categories displayed successfully.');
             } else {
                 return $this->sendError('No data found for event locations and categories.');
             }
@@ -83,7 +91,7 @@ class EventController extends BaseController
     {
         try {
             $input = $request->all();
-            $input['organized_by'] = Auth::guard('api')->user()->id;
+            $input['organized_by'] = Auth::guard('api')->user();
             $event = Event::create($input);
             if ($event) {
                 if ($request->hasFile('photos')) {
