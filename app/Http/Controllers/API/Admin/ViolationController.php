@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\DocumentCategory;
 use App\Models\Violation;
 use App\Models\ViolationType;
 use App\Models\ViolationDocument;
@@ -37,19 +38,21 @@ class ViolationController extends BaseController
                 $user = User::with('violations');
             }
 
-            $hasViolations = $user->whereHas('violations', function ($query) use($request) {
+            $violations = $user->whereHas('violations', function ($query) use($request) {
                 $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
                 ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
                 ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
                 ->where('email', 'LIKE', '%'.$request->get('email'). '%')
-                ->where('address', 'LIKE', '%'.$request->get('address'). '%')
-                ->where('violations.violation_type_id', 'LIKE' , '%'.$request->get('type').'%');
+                ->where('address', 'LIKE', '%'.$request->get('address'). '%');
+            })
+            ->when($request->has('type'), function ($query) use ($request) {
+                $query->where('violations.violation_type_id', $request->type);
             })->get();
 
             if (count($violationTypes)) {
-                if (count($hasViolations)) {
+                if (count($violations)) {
                     Log::info('Violations data displayed successfully.');
-                    return $this->sendResponse(['violationTypes' => $violationTypes, 'hasViolations' => $hasViolations], 'Violations data retrieved successfully.');
+                    return $this->sendResponse(['violationTypes' => $violationTypes, 'violations' => $violations], 'Violations data retrieved successfully.');
                 } else {
                     return $this->sendError('No data found for violations');
                 }
@@ -69,7 +72,20 @@ class ViolationController extends BaseController
      */
     public function create()
     {
-        //
+        try {
+            $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
+            $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
+
+            if (count($docCategories) && count($violationTypes)) {
+                Log::info('Document categories and violation types displayed successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories, 'violationTypes' => $violationTypes], 'Document categories and violation types displayed successfully.');
+            } else {
+                return $this->sendError('No data found for document categories and violation types.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve document categories and violation types due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve document categories and violation types.');
+        }
     }
 
     /**

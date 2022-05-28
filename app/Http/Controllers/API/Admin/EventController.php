@@ -337,7 +337,7 @@ class EventController extends BaseController
      */
     public function destroy($id)
     {
-        try {
+        //try {
             $event = Event::findOrFail($id);
             if ($event) {
                 if ($event->eventImages()) {
@@ -354,10 +354,10 @@ class EventController extends BaseController
             } else {
                 return $this->sendError('Event not found.');
             }
-        } catch (Exception $e) {
-            Log::error('Failed to delete event due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete event.');
-        }
+        // } catch (Exception $e) {
+        //     Log::error('Failed to delete event due to occurance of this exception'.'-'. $e->getMessage());
+        //     return $this->sendError('Operation failed to delete event.');
+        // }
     }
 
     /**
