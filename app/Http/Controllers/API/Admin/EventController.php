@@ -28,25 +28,26 @@ class EventController extends BaseController
             $locations = EventLocation::where('status', 1)->orderBy('location','asc')->get();
 
             $events = Event::with('eventLocation')
-            ->where('event_title', 'LIKE', '%'.$request->get('title'). '%')
+            ->where('event_title', 'LIKE', '%'.$request->title. '%')
             ->when($request->has('start_date'), function ($query) use ($request) {
-                $query->where('start_datetime', $request->start_date);
+                $query->where('start_datetime', 'LIKE', '%'.$request->start_date. '%');
             })
             ->when($request->has('end_date'), function ($query) use ($request) {
-                $query->where('end_datetime', $request->end_date);
+                $query->where('end_datetime', 'LIKE', '%'.$request->end_date. '%');
             })
             ->when($request->has('location'), function ($query) use ($request) {
-                $query->where('event_location_id', $request->location);
+                $query->where('event_location_id', 'LIKE', '%'.$request->location. '%');
             })
             ->when($request->has('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
+                $query->where('status', 'LIKE', '%'.$request->status. '%');
             })->get();
-            
+
             if (count($locations)) {
                 if (count($events)) {
                     Log::info('Event data displayed successfully.');
                     return $this->sendResponse(['events' => $events, 'locations' => $locations], 'Events data retrieved successfully.');
-                } else {
+                } 
+                else {
                     return $this->sendError('No data found for event.');
                 }
             } else {

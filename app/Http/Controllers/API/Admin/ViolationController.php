@@ -30,29 +30,47 @@ class ViolationController extends BaseController
             $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
 
             // Inactive user checkbox is selected
-            if ($request->in_active_user) {
-                if ($request->get('in_active_user') == 'on') {
-                    $user = User::with('violations')->where('status', 0);
-                }
-            } else {
-                $user = User::with('violations');
-            }
+            // if ($request->in_active_user) {
+            //     if ($request->get('in_active_user') == 'on') {
+            //         $user = User::with('violations')->where('status', 0);
+            //     }
+            // } else {
+            //     $user = User::with('violations');
+            // }
 
-            $violations = $user->whereHas('violations', function ($query) use($request) {
+            // $userViolations = User::with('violations')->whereHas('violations', function ($query) use($request) {
+            //     $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+            //     ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+            //     ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
+            //     ->where('email', 'LIKE', '%'.$request->get('email'). '%')
+            //     ->where('address', 'LIKE', '%'.$request->get('address'). '%');
+            // })
+            // ->when($request->has('in_active_user'), function ($query) use ($request) {
+            //     $query->where('status', 0);
+            // })
+            // ->when($request->has('type'), function ($query) use ($request) {
+            //     $query->where('violations.violation_type_id', $request->type);
+            // })->get();
+
+            $userViolations = Violation::with('user', 'violationType')->whereHas('user', function ($query) use($request) {
                 $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
                 ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
                 ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
                 ->where('email', 'LIKE', '%'.$request->get('email'). '%')
                 ->where('address', 'LIKE', '%'.$request->get('address'). '%');
             })
+            ->when($request->has('in_active_user'), function ($query) use ($request) {
+                $query->where('users.status', 0);
+            })
             ->when($request->has('type'), function ($query) use ($request) {
-                $query->where('violations.violation_type_id', $request->type);
-            })->get();
+                $query->where('violation_type_id', $request->type);
+            })
+            ->orderBy('violation_date', 'asc')->get();
 
             if (count($violationTypes)) {
-                if (count($violations)) {
+                if (count($userViolations)) {
                     Log::info('Violations data displayed successfully.');
-                    return $this->sendResponse(['violationTypes' => $violationTypes, 'violations' => $violations], 'Violations data retrieved successfully.');
+                    return $this->sendResponse(['violationTypes' => $violationTypes, 'userViolations' => $userViolations], 'Violations data retrieved successfully.');
                 } else {
                     return $this->sendError('No data found for violations');
                 }
@@ -75,10 +93,11 @@ class ViolationController extends BaseController
         try {
             $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
             $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
+            $authUser = Auth::guard('api')->user();
 
             if (count($docCategories) && count($violationTypes)) {
                 Log::info('Document categories and violation types displayed successfully.');
-                return $this->sendResponse(['docCategories' => $docCategories, 'violationTypes' => $violationTypes], 'Document categories and violation types displayed successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories, 'violationTypes' => $violationTypes, 'authUser' => $authUser], 'Document categories and violation types displayed successfully.');
             } else {
                 return $this->sendError('No data found for document categories and violation types.');
             }
@@ -88,6 +107,27 @@ class ViolationController extends BaseController
         }
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function getUserDetails(Request $request)
+    {
+        $users = User::with('role')->where('first_name', $request->data)
+                ->orWhere('last_name', $request->data)
+                ->orWhere('mobile_no', $request->data)
+                ->orWhere('email', $request->data)
+                ->orWhere('reg_code', $request->data)
+                ->orWhere('address', $request->data)->get();
+                if (count($users)) {
+                    Log::info('users data displayed successfully.');
+                    return $this->sendResponse($users, 'users data retrieved successfully.');
+                } else {
+                    return $this->sendError('No data found for users');
+                }
+    }
     /**
      * Store a newly created resource in storage.
      *
@@ -108,7 +148,7 @@ class ViolationController extends BaseController
                     $this->fileUpload($folder, $input, $files, $violation);
                 }
                 Log::info('Violation added successfully.');
-                return $this->sendResponse(new ViolationResource($violation), 'Violation added successfully.');
+                return $this->sendResponse($violation, 'Violation added successfully.');
             } else {
                 return $this->sendError('Failed to add violation');     
             }

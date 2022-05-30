@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use App\Models\ViolationType;
 use App\Models\ViolationDocument;
 
@@ -35,5 +36,10 @@ class Violation extends Model
     public function violationDocuments()
     {
         return $this->hasMany(ViolationDocument::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
