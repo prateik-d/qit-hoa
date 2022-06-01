@@ -343,4 +343,27 @@ class UserController extends BaseController
             return $this->sendError('Operation failed to delete user');
         }
     }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function getUserDetails(Request $request)
+    {
+        $users = User::with('role')->where('first_name', $request->data)
+                ->orWhere('last_name', $request->data)
+                ->orWhere('mobile_no', $request->data)
+                ->orWhere('email', $request->data)
+                ->orWhere('reg_code', $request->data)
+                ->orWhere('address', $request->data)->get();
+                if (count($users)) {
+                    Log::info('users data displayed successfully.');
+                    return $this->sendResponse($users, 'users data retrieved successfully.');
+                } else {
+                    return $this->sendError('No data found for users');
+                }
+    }
+    
 }

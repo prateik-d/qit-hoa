@@ -25,20 +25,32 @@ class ACCRequestController extends BaseController
     public function index(Request $request)
     {
         try {
-            if ($request->in_active_user) {
-                if ($request->get('in_active_user') == 'on') {
-                    $user = User::with('usersAccRequests')->where('status', 0);
-                }
-            } else {
-                $user = User::with('usersAccRequests');
-            }
-            $accRequest = $user->whereHas('usersAccRequests', function ($query) use($request) {
-                $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
-                ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
-                ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
-                ->where('email', 'LIKE', '%'.$request->get('email'). '%')
-                ->where('address', 'LIKE', '%'.$request->get('address'). '%');
-           })->get();
+        //     if ($request->in_active_user) {
+        //         if ($request->get('in_active_user') == 'on') {
+        //             $user = User::with('usersAccRequests')->where('status', 0);
+        //         }
+        //     } else {
+        //         $user = User::with('usersAccRequests');
+        //     }
+        //     $accRequest = $user->whereHas('usersAccRequests', function ($query) use($request) {
+        //         $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+        //         ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+        //         ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
+        //         ->where('email', 'LIKE', '%'.$request->get('email'). '%')
+        //         ->where('address', 'LIKE', '%'.$request->get('address'). '%');
+        //    })->get();
+
+           $accRequest = AccRequest::with('createdByUser')->whereHas('createdByUser', function ($query) use($request) {
+            $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+            ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+            ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
+            ->where('email', 'LIKE', '%'.$request->get('email'). '%')
+            ->where('address', 'LIKE', '%'.$request->get('address'). '%');
+            })
+            ->when($request->has('in_active_user'), function ($query) use ($request) {
+                $query->where('users.status', 0);
+            })
+            ->orderBy('title', 'asc')->get();
 
             if (count($accRequest)) {
                 Log::info('ACC-request data displayed successfully.');

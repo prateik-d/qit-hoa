@@ -145,7 +145,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('roles', RoleController::class);
     // Violation API Routes
     Route::resource('violations', ViolationController::class);
-    Route::get('/get-user', [ViolationController::class, 'getUserDetails']);
+    Route::get('/get-user', [UserController::class, 'getUserDetails']);
     Route::get('violations-status', [ViolationController::class, 'status']);
     Route::delete('delete-all-violations', [ViolationController::class, 'deleteAll']);
     Route::put('/post-response/{id}', [ViolationController::class, 'postResponse']);

@@ -176,10 +176,12 @@ class EventController extends BaseController
     public function edit($id)
     {
         try {
+            $locations = EventLocation::where('status', 1)->orderBy('location', 'asc')->get();
+            $categories = EventCategory::where('status', 1)->orderBy('category', 'asc')->get();
             $event = Event::findOrFail($id);
             if ($event->status != 'cancelled') {
                 Log::info('Edit event data for event id: '.$id);
-                return $this->sendResponse(new EventResource($event), 'Event retrieved successfully.');
+                return $this->sendResponse(['event' => $event, 'locations' => $locations, 'categories' => $categories], 'Event retrieved successfully.');
             } else {
                 Log::error('Cannot edit event data for event id: '.$id.' '.'because the event is cancelled by admin');
                 return $this->sendError('Operation failed to edit event data, because the event is cancelled by admin.');
