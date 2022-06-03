@@ -24,14 +24,16 @@ class StoreVotingRequest extends FormRequest
     public function rules()
     {
         return [
+            'new_title' => 'required_without_all:voting_title',
+            'voting_title' => 'required_without_all:new_title',
             'voting_category_id' => 'required_without_all:title',
             'title' => 'required_without_all:voting_category_id',
             'description' => 'required',
-            'year' => 'required',
+            //'year' => 'required',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_datetime',
-            'vote_option' => 'required',
-            'option' => 'required'
+            // 'vote_option' => 'required',
+            // 'option' => 'required'
         ];
     }
 }

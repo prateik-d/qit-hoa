@@ -10,6 +10,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\AccRequest;
 use App\Models\AccDocument;
 use App\Models\User;
+use App\Models\DocumentCategory;
 use App\Http\Resources\ACCRequest as ACCRequestResource;
 use App\Http\Requests\StoreACCRequest;
 use App\Exports\AccRequestExport;
@@ -71,19 +72,18 @@ class ACCRequestController extends BaseController
      */
     public function create()
     {
-        //Autoill loggedin users details
         try {
-            $user = Auth::guard('api')->user();
+            $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
 
-            if (count($user)) {
-                Log::info('User data displayed successfully.');
-                return $this->sendResponse($user, 'User data retrieved successfully.');
+            if (count($docCategories)) {
+                Log::info('Document categories and violation types displayed successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories], 'Document categories and violation types displayed successfully.');
             } else {
-                return $this->sendError('No data found for user.');
+                return $this->sendError('No data found for document categories and violation types.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve user due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve user.');
+            Log::error('Failed to retrieve document categories and violation types due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve document categories and violation types.');
         }
     }
 
@@ -99,7 +99,7 @@ class ACCRequestController extends BaseController
             $input = $request->all();
             if (Auth::guard('api')->user()->id == $input['user_id']) {
                 $accRequest = AccRequest::create($input);
-                $neighbours = $input['neighbour_id'];
+                $neighbours = json_decode($input['neighbour_id'],true);
                 if (count($neighbours)) {
                     $accRequest->users()->attach($neighbours);
                 }

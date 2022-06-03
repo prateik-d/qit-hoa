@@ -24,25 +24,27 @@ class VotingController extends BaseController
     public function index(Request $request)
     {
         try {
-            $votingCategories = VotingCategory::orderBy('title', 'ASC')->pluck('title','id');
+            $votings = Voting::with('votingCategory', 'nominees')
+            ->whereHas('nominees', function ($query) use($request) {
+                $query->where('users.first_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->orWhere('users.last_name', 'LIKE', '%'.$request->get('name'). '%');
+            })
+            ->whereHas('votingCategory', function ($query) use($request) {
+                $query->where('voting_categories.title', 'LIKE', '%'.$request->get('title'). '%');
+            })
+            ->when($request->has('status'), function ($query) use ($request) {
+                $query->where('status', 'LIKE', '%'.$request->get('status'). '%');
+            })
+            ->when($request->has('year'), function ($query) use ($request) {
+                $query->where('year', 'LIKE', '%'.$request->get('year'). '%');
+            })
+            ->get();
 
-            $voting = Voting::with('votingCategory', 'nominees')->where('status', $request->get('status'))->whereHas('nominees', function ($query) use($request) {
-                        $query->where('voting_category_id', 'LIKE', '%'.$request->get('title'). '%')
-                        ->where('year', 'LIKE', '%'.$request->get('year'). '%')
-                        ->where('status', 'LIKE', '%'.$request->get('status'). '%')
-                        ->where('users.first_name', 'LIKE', '%'.$request->get('name'). '%')
-                        ->orWhere('users.last_name', 'LIKE', '%'.$request->get('name'). '%');
-                    })->get();
-
-            if (count($votingCategories)) {
-                if (count($voting)) {
-                    Log::info('Voting data displayed successfully.');
-                    return $this->sendResponse(['votingCategories' => $votingCategories, 'voting' => $voting], 'Voting data retrieved successfully.');
-                } else {
-                    return $this->sendError('No data found for voting');
-                }
+            if (count($votings)) {
+                Log::info('Voting data displayed successfully.');
+                return $this->sendResponse(['votings' => $votings], 'Voting data retrieved successfully.');
             } else {
-                return $this->sendError('No data found for categories');
+                return $this->sendError('No data found for voting');
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve voting data due to occurance of this exception'.'-'. $e->getMessage());
@@ -58,11 +60,11 @@ class VotingController extends BaseController
     public function create()
     {
         try {
-            $votingCategories = VotingCategory::orderBy('title', 'ASC')->pluck('title','id');
+            $votingCategories = VotingCategory::orderBy('title', 'ASC')->get();
 
             if (count($votingCategories)) {
                 Log::info('Voting categories data displayed successfully.');
-                return $this->sendResponse($votingCategories, 'Voting categories data retrieved successfully.');
+                return $this->sendResponse(['votingCategories' => $votingCategories], 'Voting categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for voting categories.');
             }
@@ -279,7 +281,7 @@ class VotingController extends BaseController
      */
     public function deleteAll(Request $request)
     {
-        try {
+        //try {
             $ids = $request->ids;
             $voting = Voting::whereIn('id',explode(",",$ids))->get();
             if ($voting) {
@@ -300,10 +302,10 @@ class VotingController extends BaseController
             } else {
                 return $this->sendError('Votings not found.');
             }
-        } catch (Exception $e) {
-            Log::error('Failed to delete votings due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete votings.');
-        }
+        // } catch (Exception $e) {
+        //     Log::error('Failed to delete votings due to occurance of this exception'.'-'. $e->getMessage());
+        //     return $this->sendError('Operation failed to delete votings.');
+        // }
     }
 
 }
