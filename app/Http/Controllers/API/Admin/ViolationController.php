@@ -264,10 +264,14 @@ class ViolationController extends BaseController
     public function edit($id)
     {
         try {
-            $violation = Violation::find($id);
+            $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
+            $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
+            $authUser = Auth::guard('api')->user();
+            $violation = Violation::with('user.role', 'violationType', 'approvedBy.role')->find($id);
+
             if ($violation) {
                 Log::info('Edit violation data for violation id: '.$id);
-                return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories, 'violationTypes' => $violationTypes, 'authUser' => $authUser, 'violation' => $violation], 'Violation retrieved successfully.');
             } else {
                 return $this->sendError('Violation data not found.');     
             }
@@ -286,8 +290,10 @@ class ViolationController extends BaseController
      */
     public function update(StoreViolationRequest $request, $id)
     {
-        try {
+        //try {
             $input = $request->except(['_method']);
+            return json_decode($input->documents, true);
+                        die;
             $violation = Violation::find($id);
             if ($violation) {
                 $update = $violation->fill($input)->save();
@@ -316,10 +322,10 @@ class ViolationController extends BaseController
             } else {
                 return $this->sendError('Violation not found to update');
             }
-        } catch (Exception $e) {
-            Log::error('Failed to update violation due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to update violation.');
-        }
+        // } catch (Exception $e) {
+        //     Log::error('Failed to update violation due to occurance of this exception'.'-'. $e->getMessage());
+        //     return $this->sendError('Operation failed to update violation.');
+        // }
     }
 
     /**

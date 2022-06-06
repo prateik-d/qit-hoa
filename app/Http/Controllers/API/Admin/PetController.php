@@ -25,23 +25,33 @@ class PetController extends BaseController
     public function index(Request $request)
     {
         try {
-            $result = Pet::with('petType', 'breed', 'owner')->where('pet_name', 'LIKE', '%'.$request->get('pet_name'). '%')->where('owner_id', 'LIKE' , '%'.$request->get('owner').'%')->where('breed_id', 'LIKE' , '%'.$request->get('breed').'%')->where('pet_type_id', 'LIKE' , '%'.$request->get('type').'%');
-            $type = PetType::where('status', 1)->orderBy('type','asc')->get();
-            $breed = Breed::where('status', 1)->orderBy('breed','asc')->get();
-            $user = User::orderBy('first_name','asc')->get();
-            
-            $result = $result->whereHas('owner', function($query) use($request) {
-                $query->where('address', 'LIKE' , '%'.$request->get('address').'%');
-            })->get();
+            $types = PetType::where('status', 1)->orderBy('type','asc')->get();
+            $breeds = Breed::where('status', 1)->orderBy('breed','asc')->get();
 
-            $user = Auth::guard('api')->user();
-            $myPet = $user->pets()->get();
-            
-            if (count($result)) {
-                Log::info('Pet data displayed successfully.');
-                return $this->sendResponse(['type' => $type, 'breed' => $breed, 'user' => $user, 'result' => $result, 'mypet' => $myPet], 'Pets data retrieved successfully.');
+            $myPets = Pet::with('petType', 'breed', 'owner')
+            ->where('pet_name', 'LIKE', '%'.$request->get('pet_name'). '%')
+            ->whereHas('owner', function ($query) use($request) {
+                $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+                ->where('address', 'LIKE', '%'.$request->get('address'). '%');
+            })
+            ->when($request->has('type'), function ($query) use ($request) {
+                $query->where('pet_type_id', 'LIKE', '%'.$request->type. '%');
+            })
+            ->when($request->has('breed'), function ($query) use ($request) {
+                $query->where('breed_id', 'LIKE', '%'.$request->get('breed'). '%');
+            })
+            ->get();
+
+            if (count($types) && count($breeds)) {
+                if (count($myPets)) {
+                    Log::info('Pet data displayed successfully.');
+                    return $this->sendResponse(['types' => $types, 'breeds' => $breeds, 'myPets' => $myPets], 'Pets data retrieved successfully.');
+                } else {
+                    return $this->sendError('No data found for pets');
+                }
             } else {
-                return $this->sendError('No data found for pets');
+                return $this->sendError('No data found for pet-types and breeds');
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve pets data due to occurance of this exception'.'-'. $e->getMessage());
@@ -57,12 +67,12 @@ class PetController extends BaseController
     public function create()
     {
         try {
-            $type = PetType::where('status',1)->orderBy('type','asc')->get();
-            $breed = Breed::where('status',1)->orderBy('breed','asc')->get();
+            $types = PetType::where('status', 1)->orderBy('type','asc')->get();
+            $breeds = Breed::where('status', 1)->orderBy('breed','asc')->get();
 
-            if (count($type) && count($breed)) {
+            if (count($types) && count($breeds)) {
                 Log::info('Pet-type data and breed data displayed successfully.');
-                return $this->sendResponse([$type, $breed], 'Pet-type data and breed data retrieved successfully.');
+                return $this->sendResponse(['types' => $types, 'breeds' => $breeds], 'Pet-type data and breed data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for pet-type and breed.');
             }
@@ -82,7 +92,6 @@ class PetController extends BaseController
     {
         try {
             $input = $request->all();
-            $input['owner_id'] = Auth::guard('api')->user()->id;
             $pet = Pet::create($input);
             if ($pet) {
                 if ($request->hasFile('photo')) {
@@ -149,7 +158,7 @@ class PetController extends BaseController
     public function show($id)
     {
         try {
-            $pet = Pet::findOrFail($id);
+            $pet = Pet::with('petType', 'breed', 'owner')->find($id);
             Log::info('Showing pet data for pet id: '.$id);
             return $this->sendResponse(new PetResource($pet), 'Pet retrieved successfully.');
         } catch (Exception $e) {
@@ -167,9 +176,11 @@ class PetController extends BaseController
     public function edit($id)
     {
         try {
-            $pet = Pet::findOrFail($id);
+            $types = PetType::where('status', 1)->orderBy('type','asc')->get();
+            $breeds = Breed::where('status', 1)->orderBy('breed','asc')->get();
+            $myPets = Pet::with('petType', 'breed', 'owner')->find($id);
             Log::info('Edit pet data for pet id: '.$id);
-            return $this->sendResponse(new PetResource($pet), 'Pet retrieved successfully.');
+            return $this->sendResponse(['types' => $types, 'breeds' => $breeds, 'myPets' => $myPets], 'Pet retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit pet data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit pet data, pet not found.');
@@ -306,7 +317,7 @@ class PetController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $pets = Pet::whereIn('id',explode(",",$ids))->get();
             if ($pets) {
                 foreach ($pets as $pet) {

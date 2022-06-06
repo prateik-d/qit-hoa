@@ -29,7 +29,7 @@ class StorePetRequest extends FormRequest
             'breed_id' => 'required',
             'pet_name' => 'required',
             'gender' => 'required',
-            'date_of_birth' => 'required|date',
+            'date_of_birth' => 'required',
             'description' => 'required',
             'allergies' => 'required',
             'photo.*' => 'mimes:jpg,jpeg,bmp,png,pdf,xlsx',

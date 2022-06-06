@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionHeadingTableSeeder::class);
         $this->call(PermissionTableSeeder::class);
         $this->call(RoleTableSeeder::class);
+        $this->call(BreedTableSeeder::class);
+        $this->call(PetTypeTableSeeder::class);
         $this->call(ClassifiedCategoryTableSeeder::class);
         $this->call(EventCategoryTableSeeder::class);
         $this->call(EventLocationTableSeeder::class);
