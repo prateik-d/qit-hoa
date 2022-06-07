@@ -119,10 +119,10 @@ class ACCRequestController extends BaseController
                     Log::info('ACC-request raised successfully.');
                     return $this->sendResponse(new ACCRequestResource($accRequest), 'ACC-request added successfully.');
                 } else {
-                    return $this->sendError('Failed to add acc-request');     
+                    return $this->sendError([], 'Failed to add acc-request');     
                 }
             } else {
-                return $this->sendError('Failed to add acc-request, user is unauthenticated, Please provide authenticated user id'); 
+                return $this->sendError([], 'Failed to add acc-request, user is unauthenticated, Please provide authenticated user id'); 
             }
         } catch (Exception $e) {
             Log::error('Failed to add acc-request due to occurance of this exception'.'-'. $e->getMessage());
@@ -251,9 +251,10 @@ class ACCRequestController extends BaseController
     public function edit($id)
     {
         try {
-            $accRequest = ACCRequest::findOrFail($id);
+            $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
+            $accRequest = ACCRequest::with('createdByUser.role', 'users')->find($id);
             Log::info('Edit acc-request data for acc-request id: '.$id);
-            return $this->sendResponse(new ACCRequestResource($accRequest), 'ACC-request retrieved successfully.');
+            return $this->sendResponse(['docCategories' => $docCategories, 'accRequest' => $accRequest], 'ACC-request retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit acc-request data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit acc-request data, acc-request not found.');

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API\Admin;
-   
+use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -31,8 +31,7 @@ class PetController extends BaseController
             $myPets = Pet::with('petType', 'breed', 'owner')
             ->where('pet_name', 'LIKE', '%'.$request->get('pet_name'). '%')
             ->whereHas('owner', function ($query) use($request) {
-                $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
-                ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+                $query->where(DB::raw('CONCAT(first_name, " ",last_name)'), 'LIKE', '%'.$request->get('owner'). '%')
                 ->where('address', 'LIKE', '%'.$request->get('address'). '%');
             })
             ->when($request->has('type'), function ($query) use ($request) {
@@ -43,15 +42,19 @@ class PetController extends BaseController
             })
             ->get();
 
-            if (count($types) && count($breeds)) {
-                if (count($myPets)) {
-                    Log::info('Pet data displayed successfully.');
-                    return $this->sendResponse(['types' => $types, 'breeds' => $breeds, 'myPets' => $myPets], 'Pets data retrieved successfully.');
+            if (count($types)) {
+                if (count($breeds)) {
+                    if (count($myPets)) {
+                        Log::info('Pet data displayed successfully.');
+                        return $this->sendResponse(['types' => $types, 'breeds' => $breeds, 'myPets' => $myPets], 'Pets data retrieved successfully.');
+                    } else {
+                        return $this->sendError(['types' => $types, 'breeds' => $breeds], 'No data found for pets');
+                    }
                 } else {
-                    return $this->sendError('No data found for pets');
+                    return $this->sendError(['types' => $types], 'No data found for breeds');
                 }
             } else {
-                return $this->sendError('No data found for pet-types and breeds');
+                return $this->sendError('No data found for pet-types');
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve pets data due to occurance of this exception'.'-'. $e->getMessage());

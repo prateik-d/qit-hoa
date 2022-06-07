@@ -362,7 +362,7 @@ class UserController extends BaseController
                     Log::info('users data displayed successfully.');
                     return $this->sendResponse($users, 'users data retrieved successfully.');
                 } else {
-                    return $this->sendError('No data found for users');
+                    return $this->sendError([], 'No data found for user');
                 }
     }
     
