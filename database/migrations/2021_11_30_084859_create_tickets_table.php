@@ -22,7 +22,7 @@ class CreateTicketsTable extends Migration
             $table->text('description');
             $table->unsignedBigInteger('created_by');
             $table->unsignedBigInteger('assigned_to')->nullable();
-            $table->date('date_started')->nullable();
+            $table->date('ticket_date')->nullable();
             $table->enum('status', ['open', 'in review', 'in progress', 'closed'])->default('open');
             $table->timestamps();
         });

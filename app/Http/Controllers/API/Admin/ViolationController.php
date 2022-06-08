@@ -159,10 +159,13 @@ class ViolationController extends BaseController
     public function show($id)
     {
         try {
-            $violation = Violation::find($id);
+            $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
+            $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
+            $violation = Violation::with('user.role', 'violationType', 'approvedBy.role')->find($id);
+
             if ($violation) {
                 Log::info('Showing violation data for violation id: '.$id);
-                return $this->sendResponse(new ViolationResource($violation), 'Violation retrieved successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories, 'violationTypes' => $violationTypes, 'violation' => $violation], 'Violation retrieved successfully.');
             } else {
                 return $this->sendError('Violation data not found.');     
             }

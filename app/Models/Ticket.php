@@ -25,7 +25,7 @@ class Ticket extends Model
         'description',
         'created_by',
         'assigned_to',
-        'date_started',
+        'ticket_date',
         'status',
         'created_at',
         'updated_at'
@@ -44,5 +44,10 @@ class Ticket extends Model
     public function user()
     {
         return $this->belongsTo(User::class,'created_by');
+    }
+
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class,'assigned_to');
     }
 }

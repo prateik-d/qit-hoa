@@ -233,9 +233,9 @@ class ACCRequestController extends BaseController
     public function show($id)
     {
         try {
-            $accRequest = ACCRequest::findOrFail($id);
+            $accRequest = ACCRequest::with('createdByUser.role', 'users')->find($id);
             Log::info('Showing acc-request data for acc-request id: '.$id);
-            return $this->sendResponse(new ACCRequestResource($accRequest), 'ACC-request retrieved successfully.');
+            return $this->sendResponse(['accRequest' => $accRequest], 'ACC-request retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve acc-request data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve acc-request data, acc-request not found.');

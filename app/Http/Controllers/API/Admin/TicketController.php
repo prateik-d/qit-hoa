@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\API\Admin;
-
+use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Ammenity;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketImage;
@@ -27,18 +28,28 @@ class TicketController extends BaseController
                                 ->orderBy('category', 'ASC')
                                 ->get();
 
-            $ticket = Ticket::with('user', 'ticketImages', 'ticketCategory')
-                ->where('title', 'LIKE', '%'.$request->get('title'). '%')
-                ->where('status', 'LIKE', '%'.$request->get('status'). '%')
-                ->where('created_at', 'LIKE', '%'.$request->get('created_at'). '%')
-                ->where('ticket_category_id', 'LIKE' , '%'.$request->get('category').'%')->get();
+            $tickets = Ticket::with('user', 'ticketImages', 'ticketCategory', 'assignedUser')
+                        ->where('title', 'LIKE', '%'.$request->get('title'). '%')
+                        ->whereHas('user', function ($query) use($request) {
+                            $query->where(DB::raw('CONCAT(first_name, " ",last_name)'), 'LIKE', '%'.$request->get('created_by'). '%');
+                        })
+                        ->when($request->has('category'), function ($query) use ($request) {
+                            $query->where('ticket_category_id', 'LIKE', '%'.$request->category. '%');
+                        })
+                        ->when($request->has('status'), function ($query) use ($request) {
+                            $query->where('status', 'LIKE', '%'.$request->get('status'). '%');
+                        })
+                        ->when($request->has('date'), function ($query) use ($request) {
+                            $query->where('ticket_date', 'LIKE', '%'.$request->get('date'). '%');
+                        })
+                        ->get();
 
             if (count($ticketCategories)) {
-                if (count($ticket)) {
+                if (count($tickets)) {
                     Log::info('Ticket data displayed successfully.');
-                    return $this->sendResponse([$ticketCategories, $ticket], 'Ticket data retrieved successfully.');
+                    return $this->sendResponse(['ticketCategories'=> $ticketCategories, 'tickets' => $tickets], 'Ticket data retrieved successfully.');
                 } else {
-                    return $this->sendError('No data found for ticket');
+                    return $this->sendError(['ticketCategories'=> $ticketCategories], 'No data found for ticket');
                 }
             } else {
                 return $this->sendError('No data found for categories');
@@ -57,13 +68,12 @@ class TicketController extends BaseController
     public function create()
     {
         try {
-            $ticketCategories = TicketCategory::where('status', 1)
-                                ->orderBy('category', 'ASC')
-                                ->get();
+            $ticketCategories = TicketCategory::where('status', 1)->orderBy('category', 'ASC')->get();
+            $ammenities = Ammenity::orderBy('title', 'ASC')->get();
 
             if (count($ticketCategories)) {
                 Log::info('Ticket categories data displayed successfully.');
-                return $this->sendResponse($ticketCategories, 'Ticket categories data retrieved successfully.');
+                return $this->sendResponse(['ticketCategories'=> $ticketCategories, 'ammenities' => $ammenities], 'Ticket categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for ticket categories.');
             }
@@ -167,9 +177,11 @@ class TicketController extends BaseController
     public function edit($id)
     {
         try {
-            $ticket = Ticket::findOrFail($id);
+            $ticketCategories = TicketCategory::where('status', 1)->orderBy('category', 'ASC')->get();
+            $ammenities = Ammenity::orderBy('title', 'ASC')->get();
+            $ticket = Ticket::with('user', 'ticketImages', 'ticketCategory', 'assignedUser')->find($id);
             Log::info('Edit ticket data for ticket id: '.$id);
-            return $this->sendResponse(new TicketResource($ticket), 'Ticket retrieved successfully.');
+            return $this->sendResponse(['ticketCategories' => $ticketCategories, 'ammenities' => $ammenities, 'ticket' => $ticket], 'Ticket retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit ticket data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit ticket data, ticket not found.');
@@ -186,7 +198,7 @@ class TicketController extends BaseController
     public function update(StoreTicketRequest $request, $id)
     {
         try {
-            $input = $request->except(['_method']);
+            $input = $request->all();
             $ticket = Ticket::findOrFail($id);
             if ($ticket) {
                 $update = $ticket->fill($input)->save();
