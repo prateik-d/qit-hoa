@@ -29,7 +29,7 @@ class ViolationController extends BaseController
         try {
             $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
 
-            $userViolations = Violation::with('user', 'violationType')->whereHas('user', function ($query) use($request) {
+            $violations = Violation::with('user', 'violationType')->whereHas('user', function ($query) use($request) {
                 $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
                 ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
                 ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
@@ -45,9 +45,9 @@ class ViolationController extends BaseController
             ->orderBy('violation_date', 'asc')->get();
 
             if (count($violationTypes)) {
-                if (count($userViolations)) {
+                if (count($violations)) {
                     Log::info('Violations data displayed successfully.');
-                    return $this->sendResponse(['violationTypes' => $violationTypes, 'userViolations' => $userViolations], 'Violations data retrieved successfully.');
+                    return $this->sendResponse(['violationTypes' => $violationTypes, 'violations' => $violations], 'Violations data retrieved successfully.');
                 } else {
                     return $this->sendError('No data found for violations');
                 }
@@ -340,13 +340,9 @@ class ViolationController extends BaseController
     public function status(Request $request)
     {
         try {
-            $violation = Violation::where('status', $request->get('status'))->get();
-            if (count($violation)) {
-                Log::info('Showing violations for status: '.$request->get('status'));
-                return $this->sendResponse($violation, 'Violations retrieved successfully.');
-            } else {
-                return $this->sendError('Violations data not found.');
-            }
+            $violations = Violation::with('user', 'violationType')->where('status', $request->status)->get();
+            Log::info('Showing violations for status: '.$request->status);
+            return $this->sendResponse(['violations' => $violations], 'Violations retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve violations data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve violations data, violations not found.');

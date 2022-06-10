@@ -48,10 +48,10 @@ class EventController extends BaseController
                     return $this->sendResponse(['events' => $events, 'locations' => $locations], 'Events data retrieved successfully.');
                 } 
                 else {
-                    return $this->sendError('No data found for event.');
+                    return $this->sendError(['locations' => $locations], 'No data found for event.');
                 }
             } else {
-                return $this->sendError('No data found for locations.');
+                return $this->sendError([], 'No data found for locations.');
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve event data due to occurance of this exception'.'-'. $e->getMessage());
@@ -310,7 +310,7 @@ class EventController extends BaseController
         }
     }
 
-/**
+    /**
      * Display the specified resource.
      *
      * @param  int  $id
@@ -319,13 +319,9 @@ class EventController extends BaseController
     public function status(Request $request)
     {
         try {
-            $event = Event::where('status', $request->get('status'))->get();
-            if (count($event)) {
-                Log::info('Showing events for status: '.$request->get('status'));
-                return $this->sendResponse($event, 'Events retrieved successfully.');
-            } else {
-                return $this->sendError('Event data not found.');
-            }
+            $events = Event::with('eventLocation')->where('status', $request->status)->get();
+            Log::info('Showing events for status: '.$request->status);
+            return $this->sendResponse(['events' => $events], 'Events retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve event data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve event data, event not found.');
@@ -371,7 +367,7 @@ class EventController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $events = Event::whereIn('id',explode(",",$ids))->get();
             if ($events) {
                 foreach ($events as $event) {

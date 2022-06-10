@@ -16,7 +16,7 @@ class CreateVehiclesTable extends Migration
         Schema::create('vehicles', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('owner_id');
-            $table->enum('owned_by', ['self', 'guest'])->default('self');
+            $table->enum('owned_by', ['self', 'guest', 'user'])->default('self');
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
             $table->string('phone')->nullable();
@@ -31,6 +31,7 @@ class CreateVehiclesTable extends Migration
             $table->enum('access_toll_tags_needed', ['yes', 'no'])->default('no');
             $table->enum('stickers_needed', ['yes', 'no'])->default('no');
             $table->date('application_date');
+            $table->enum('status', ['pending', 'confirmed'])->default('pending');
             $table->timestamps();
         });
     }

@@ -10,6 +10,9 @@ use Notification;
 use App\Notifications\NewVehicleNotification;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Vehicle;
+use App\Models\VehicleMake;
+use App\Models\VehicleModel;
+use App\Models\VehicleColor;
 use App\Http\Requests\StoreVehicleRequest;
 
 
@@ -20,22 +23,58 @@ class VehicleController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $notifications = Auth::guard('api')->user()->unreadNotifications;
+            $vehicles = Vehicle::with('user', 'vehicleMake', 'vehicleModel', 'vehicleColor', 'vehicleDocuments')->whereHas('user', function ($query) use($request) {
+                $query->where('first_name', 'LIKE', '%'.$request->get('owner'). '%')
+                ->orWhere('last_name', 'LIKE', '%'.$request->get('owner'). '%');
+            })
+            ->whereHas('vehicleMake', function ($query) use ($request) {
+                $query->where('make', 'LIKE', '%'.$request->get('make'). '%');
+            })
+            ->whereHas('vehicleModel', function ($query) use ($request) {
+                $query->where('model', 'LIKE', '%'.$request->get('model'). '%');
+            })
+            ->whereHas('vehicleColor', function ($query) use ($request) {
+                $query->where('color', 'LIKE', '%'.$request->get('color'). '%');
+            })
+            ->when($request->has('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->when($request->has('tag_type'), function ($query) use ($request) {
+                $query->where('toll_tag_type', $request->tag_type);
+            })
+            ->get();
 
-            if ($notifications) {
-                Log::info('Notification received for new registered vehicle.');
-                return $this->sendResponse($notifications, 'Notification received for new registered vehicle.');
+            if (count($vehicles)) {
+                Log::info('Vehicles data displayed successfully.');
+                return $this->sendResponse(['vehicles' => $vehicles], 'Vehicles data retrieved successfully.');
             } else {
-                return $this->sendError('Notifications not found.');
+                return $this->sendError('No data found for vehicles');
             }
         } catch (Exception $e) {
-            Log::error('Failed to receive notification for new registered vehicle due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to receive notification for new registered vehicle.');
+            Log::error('Failed to retrieve vehicles data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve vehicles data.');
         }
     }
+    
+    // public function index()
+    // {
+    //     try {
+    //         $notifications = Auth::guard('api')->user()->unreadNotifications;
+
+    //         if ($notifications) {
+    //             Log::info('Notification received for new registered vehicle.');
+    //             return $this->sendResponse($notifications, 'Notification received for new registered vehicle.');
+    //         } else {
+    //             return $this->sendError('Notifications not found.');
+    //         }
+    //     } catch (Exception $e) {
+    //         Log::error('Failed to receive notification for new registered vehicle due to occurance of this exception'.'-'. $e->getMessage());
+    //         return $this->sendError('Operation failed to receive notification for new registered vehicle.');
+    //     }
+    // }
 
     /**
      * Mark notification as read.
@@ -80,7 +119,7 @@ class VehicleController extends BaseController
 
             if (count($vehicleMakes) && count($vehicleModels) && count($vehicleColors)) {
                 Log::info('Vehicle-makes data, vehicle-models and vehicle-colors data displayed successfully.');
-                return $this->sendResponse([$vehicleMakes, $vehicleModels], 'Vehicle-makes data, vehicle-models and vehicle-colors data displayed successfully.');
+                return $this->sendResponse(['vehicleMakes' => $vehicleMakes, 'vehicleModels' => $vehicleModels, 'vehicleColors' => $vehicleColors], 'Vehicle-makes data, vehicle-models and vehicle-colors data displayed successfully.');
             } else {
                 return $this->sendError('No data found for vehicle-makes, vehicle-models and vehicle-colors.');
             }
@@ -104,7 +143,11 @@ class VehicleController extends BaseController
                 $query->where('id', 1);
             })->get();
 
-            $input['owner_id'] = Auth::guard('api')->user()->id;
+            if ($input['owner_id'] == Auth::guard('api')->user()->id) {
+                $input['owned_by'] = 'self';
+            } else {
+                $input['owned_by'] = 'user';
+            }
             // Need Access toll tags
             if ($input['access_toll_tags_needed'] == 1) {
                 $input['access_toll_tags_needed'] = 'yes';

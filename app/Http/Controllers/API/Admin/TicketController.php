@@ -258,14 +258,9 @@ class TicketController extends BaseController
     public function status(Request $request)
     {
         try {
-            $tickets = Ticket::where('status', $request->get('status'))->get();
-            
-            if (count($tickets)) {
-                Log::info('Showing tickets for status: '.$request->get('status'));
-                return $this->sendResponse($tickets, 'Tickets retrieved successfully.');
-            } else {
-                return $this->sendError('Tickets data not found.');
-            }
+            $tickets = Ticket::with('user', 'ticketImages', 'ticketCategory', 'assignedUser')->where('status', $request->data)->get();
+            Log::info('Showing tickets for status: '.$request->data);
+            return $this->sendResponse(['tickets' => $tickets], $request->data.' '.'tickets retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve tickets data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve tickets data, tickets not found.');
@@ -311,7 +306,7 @@ class TicketController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $tickets = Ticket::whereIn('id',explode(",",$ids))->get();
             if ($tickets) {
                 foreach ($tickets as $ticket) {

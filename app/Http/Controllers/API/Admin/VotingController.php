@@ -229,13 +229,9 @@ class VotingController extends BaseController
     public function status(Request $request)
     {
         try {
-            $voting = Voting::where('status', $request->get('status'))->get();
-            if (count($voting)) {
-                Log::info('Showing votings for status: '.$request->get('status'));
-                return $this->sendResponse($voting, 'Votings retrieved successfully.');
-            } else {
-                return $this->sendError('Voting data not found.');
-            }
+            $votings = Voting::with('votingCategory', 'nominees')->where('status', $request->status)->get();
+            Log::info('Showing votings for status: '.$request->status);
+            return $this->sendResponse(['votings' => $votings], 'Votings retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve voting data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve voting data, voting not found.');
@@ -281,8 +277,8 @@ class VotingController extends BaseController
      */
     public function deleteAll(Request $request)
     {
-        //try {
-            $ids = $request->ids;
+        try {
+            $ids = $request->id;
             $voting = Voting::whereIn('id',explode(",",$ids))->get();
             if ($voting) {
                 foreach ($voting as $selectedvotings) {
@@ -302,10 +298,10 @@ class VotingController extends BaseController
             } else {
                 return $this->sendError('Votings not found.');
             }
-        // } catch (Exception $e) {
-        //     Log::error('Failed to delete votings due to occurance of this exception'.'-'. $e->getMessage());
-        //     return $this->sendError('Operation failed to delete votings.');
-        // }
+        } catch (Exception $e) {
+            Log::error('Failed to delete votings due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete votings.');
+        }
     }
 
 }

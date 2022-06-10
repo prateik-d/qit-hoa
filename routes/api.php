@@ -127,15 +127,16 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::post('/my-acc-request', [ACCRequestController::class, 'myAccRequest']);
     // Approve or reject received request 
     Route::put('/my-approval/{id}', [ACCRequestController::class, 'myApproval']);
-    // Breed API Routes
+    Route::get('acc-requests-status', [ACCRequestController::class, 'status']);
     Route::get('/acc-report-export',[ACCRequestController::class, 'export'])->name('acc.export');
+    // Breed API Routes
     Route::resource('breeds', BreedController::class);
     // Category API Routes
     Route::resource('categories', CategoryController::class);
     // Pet API Routes
     Route::resource('pets', PetController::class);
-    Route::get('pets-type', [PetController::class, 'filterByType']);
-    Route::get('pets-breed', [PetController::class, 'filterByBreed']);
+    Route::get('filter-pets-by-type', [PetController::class, 'filterByType']);
+    Route::get('filter-pets-by-breed', [PetController::class, 'filterByBreed']);
     Route::delete('delete-all-pets', [PetController::class, 'deleteAll']);
     // Pet Type API Routes
     Route::resource('pet-types', PetTypeController::class);
@@ -175,7 +176,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('ticket-categories', TicketCategoryController::class);
     // Event API Routes
     Route::resource('events', EventController::class);
-    Route::get('event-status', [EventController::class, 'status']);
+    Route::get('events-status', [EventController::class, 'status']);
     Route::delete('delete-all-events', [EventController::class, 'deleteAll']);
     Route::get('/archived-event', [EventController::class, 'archivedEvent']);
     Route::get('/upcoming-event', [EventController::class, 'upcomingEvent']);

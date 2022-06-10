@@ -41,7 +41,7 @@ class ACCRequestController extends BaseController
         //         ->where('address', 'LIKE', '%'.$request->get('address'). '%');
         //    })->get();
 
-           $accRequest = AccRequest::with('createdByUser')->whereHas('createdByUser', function ($query) use($request) {
+           $accRequests = AccRequest::with('createdByUser')->whereHas('createdByUser', function ($query) use($request) {
             $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
             ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
             ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
@@ -53,9 +53,9 @@ class ACCRequestController extends BaseController
             })
             ->orderBy('title', 'asc')->get();
 
-            if (count($accRequest)) {
+            if (count($accRequests)) {
                 Log::info('ACC-request data displayed successfully.');
-                return $this->sendResponse($accRequest, 'ACC-request data retrieved successfully.');
+                return $this->sendResponse(['accRequests' => $accRequests], 'ACC-request data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for acc-request');
             }
@@ -363,13 +363,9 @@ class ACCRequestController extends BaseController
     public function status(Request $request)
     {
         try {
-            $accRequest = ACCRequest::where('status', $request->get('status'))->get();
-            if (count($accRequest)) {
-                Log::info('Showing acc-requests for status: '.$request->get('status'));
-                return $this->sendResponse($violation, 'acc-requests retrieved successfully.');
-            } else {
-                return $this->sendError('ACC-requests data not found.');
-            }
+            $accRequests = ACCRequest::with('createdByUser')->where('status', $request->status)->get();
+            Log::info('Showing acc-requests for status: '.$request->status);
+            return $this->sendResponse(['accRequests' => $accRequests], 'acc-requests retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve acc-requests data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve acc-requests data, acc-requests not found.');
@@ -453,7 +449,7 @@ class ACCRequestController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $accRequest = ACCRequest::whereIn('id',explode(",",$ids))->get();
             if ($accRequest) {
                 foreach ($accRequest as $acc) {
