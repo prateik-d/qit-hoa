@@ -24,26 +24,29 @@ class DocumentController extends BaseController
     public function index(Request $request)
     {
         try {
-            $document = Document::where('title', 'LIKE', '%'.$request->get('title'). '%');
-            
-            if ($request->type && $request->year) {
-                $document = $document->where('type', $request->get('type'))->where('year', $request->get('year'));
-            } else if ($request->type) {
-                $document = $document->where('type', $request->get('type'));
-            } else if ($request->year) {
-                $document = $document->where('year', $request->get('year'));
-            }
+            $docCategories = DocumentCategory::orderBy('title','asc')->get();
+            $documents = Document::with('documentCategory', 'documentFiles')
+            ->where('title', 'LIKE', '%'.$request->get('title'). '%')
+            ->when($request->has('category_id'), function ($query) use ($request) {
+                $query->where('category_id', 'LIKE', '%'.$request->category_id. '%');
+            })
+            ->when($request->has('year'), function ($query) use ($request) {
+                $query->where('year', 'LIKE', '%'.$request->year. '%');
+            })
+            ->get();
 
-            $document = $document->get();
-
-            if (count($document)) {
-                Log::info('Document data displayed successfully.');
-                return $this->sendResponse(new DocumentResource($document), 'Document data retrieved successfully.');
-            } else {
-                return $this->sendError('No data found for document.');
-            }
+            // if (count($docCategories)) {
+            //     if (count($documents)) {
+                    Log::info('Document data displayed successfully.');
+                    return $this->sendResponse(['docCategories' => $docCategories, 'documents' => $documents], 'Document data retrieved successfully.');
+            //     } else {
+            //         return $this->sendError(['docCategories' => $docCategories], 'No data found for documents.');
+            //     }
+            // } else {
+            //     return $this->sendError('No data found for document categories.');
+            // }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve document data due to occurance of this exception'.'-'. $e->getMessage());
+            Log::error('Failed to retrieve documents data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve document data.');
         }
     }
@@ -56,16 +59,11 @@ class DocumentController extends BaseController
     public function create(Request $request)
     {
         try {
-            $categories = DocumentCategory::orderBy('title','asc')->pluck('title', 'id');
-            $users = User::where('status', 1)->where('first_name', 'LIKE' , '%'.$request->get('name').'%')
-            ->where('last_name', 'LIKE' , '%'.$request->get('name').'%')
-            ->where('address', 'LIKE' , '%'.$request->get('address').'%')
-            ->where('email', 'LIKE' , '%'.$request->get('email').'%')
-            ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')->get();
+            $docCategories = DocumentCategory::orderBy('title','asc')->get();
 
-            if (count($categories) && count($users)) {
+            if (count($docCategories)) {
                 Log::info('Document categories displayed successfully.');
-                return $this->sendResponse(['categories' => $categories, 'users' =>  $users], 'Document categories retrieved successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories], 'Document categories retrieved successfully.');
             } else {
                 return $this->sendError('No data found for document categories.');
             }
@@ -86,13 +84,6 @@ class DocumentController extends BaseController
         try {
             $input = $request->all();
             $input['added_by'] = Auth::guard('api')->user()->id;
-            // if ($request->hasFile('document')) {
-            //     $file = $request->file('document');
-            //     $name = $file->getClientOriginalName();
-            //     $filename = $input['title'].'-'.$name;
-            //     $path = $file->storeAs('public/documents', $filename);
-            //     $input['file_path'] = $path;
-            // }
             $document = Document::create($input);
             if ($document) {
                 if ($request->hasFile('document')) {
@@ -180,10 +171,11 @@ class DocumentController extends BaseController
     public function edit($id)
     {
         try {
-            $document = Document::find($id);
-            if ($document) {
+            $docCategories = DocumentCategory::orderBy('title','asc')->get();
+            $documents = Document::with('documentCategory', 'documentFiles')->get();
+            if ($documents) {
                 Log::info('Edit document data for document id: '.$id);
-                return $this->sendResponse(new DocumentResource($document), 'Document retrieved successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories, 'documents' => $documents], 'Document retrieved successfully.');
             } else {
                 return $this->sendError('Document data not found.');     
             }
@@ -206,18 +198,6 @@ class DocumentController extends BaseController
             $input = $request->except(['_method']);
             $document = Document::find($id);
             if ($document) {
-                // if ($request->hasFile('document')) {
-                //     if ($document->file_path != null) {
-                //         if (file_exists(storage_path('app/'.$document->file_path))) {
-                //             unlink(storage_path('app/'.$document->file_path));
-                //         }
-                //     }
-                //     $file = $request->file('document');
-                //     $name = $file->getClientOriginalName();
-                //     $filename = $input['title'].'-'.$name;
-                //     $path = $file->storeAs('public/documents', $filename);
-                //     $input['file_path'] = $path;
-                // }
                 $update = $document->fill($input)->save();
                 if ($update) {
                     if ($request->hasFile('document')) {
@@ -259,14 +239,9 @@ class DocumentController extends BaseController
     public function filterByType(Request $request)
     {
         try {
-            $document = Document::where('type', $request->get('type'))->get();
-            
-            if (count($document)) {
-                Log::info('Showing documents for type: '.$request->get('type'));
-                return $this->sendResponse($document, 'Documents retrieved successfully.');
-            } else {
-                return $this->sendError('Documents data not found.');
-            }
+            $documents = Document::with('documentCategory', 'documentFiles')->where('type', $request->type)->get();
+            Log::info('Showing documents for type: '.$request->type);
+            return $this->sendResponse(['documents' => $documents], 'Documents retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve documents data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve documents data, documents not found.');
@@ -282,14 +257,9 @@ class DocumentController extends BaseController
     public function filterByYear(Request $request)
     {
         try {
-            $document = Document::where('year', $request->get('year'))->get();
-            
-            if (count($document)) {
-                Log::info('Showing documents for year: '.$request->get('year'));
-                return $this->sendResponse($document, 'Documents retrieved successfully.');
-            } else {
-                return $this->sendError('Documents data not found.');
-            }
+            $documents = Document::with('documentCategory', 'documentFiles')->where('year', $request->year)->get();
+            Log::info('Showing documents for year: '.$request->year);
+            return $this->sendResponse(['documents' => $documents], 'Documents retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve documents data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve documents data, documents not found.');
@@ -332,7 +302,7 @@ class DocumentController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $documents = Document::whereIn('id',explode(",",$ids))->get();
             if ($documents) {
                 foreach ($documents as $document) {

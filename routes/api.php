@@ -187,6 +187,9 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('event-locations', EventLocationController::class);
     // Vehicle API Routes
     Route::resource('vehicles', VehicleController::class);
+    Route::get('vehicles-status', [VehicleController::class, 'status']);
+    Route::get('filter-vehicles-by-tag-type', [VehicleController::class, 'filterByTagType']);
+    Route::delete('delete-all-vehicles', [VehicleController::class, 'deleteAll']);
     // This should be under 'auth' middleware group
     Route::post('/mark-as-read', [VehicleController::class, 'markNotification'])->name('markNotification');
     // Ammenity API Routes
@@ -202,8 +205,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::post('/mark-as-read', [ReservationController::class, 'markNotification'])->name('markNotification');
     // Document API Routes
     Route::resource('documents', DocumentController::class);
-    Route::get('documents-type', [DocumentController::class, 'filterByType']);
-    Route::get('documents-year', [DocumentController::class, 'filterByYear']);
+    Route::get('filter-documents-by-type', [DocumentController::class, 'filterByType']);
+    Route::get('filter-documents-by-year', [DocumentController::class, 'filterByYear']);
     Route::delete('delete-all-documents', [DocumentController::class, 'deleteAll']);
     // Faq API Routes
     Route::resource('faqs', FaqController::class);

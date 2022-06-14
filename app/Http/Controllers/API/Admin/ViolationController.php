@@ -49,7 +49,7 @@ class ViolationController extends BaseController
                     Log::info('Violations data displayed successfully.');
                     return $this->sendResponse(['violationTypes' => $violationTypes, 'violations' => $violations], 'Violations data retrieved successfully.');
                 } else {
-                    return $this->sendError('No data found for violations');
+                    return $this->sendError(['violationTypes' => $violationTypes], 'No data found for violations');
                 }
             } else {
                 return $this->sendError('No data found for violation types');

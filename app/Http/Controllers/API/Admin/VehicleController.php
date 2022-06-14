@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Http\Controllers\API\Admin;
-   
+use Illuminate\Support\Facades\Storage;
+
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -9,12 +10,15 @@ use Illuminate\Support\Facades\Auth;
 use Notification;
 use App\Notifications\NewVehicleNotification;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\DocumentCategory;
 use App\Models\Vehicle;
 use App\Models\VehicleMake;
 use App\Models\VehicleModel;
 use App\Models\VehicleColor;
+use App\Models\VehicleDocument;
+use App\Models\User;
 use App\Http\Requests\StoreVehicleRequest;
-
+use App\Http\Resources\Vehicle as VehicleResource;
 
 class VehicleController extends BaseController
 {
@@ -40,10 +44,10 @@ class VehicleController extends BaseController
                 $query->where('color', 'LIKE', '%'.$request->get('color'). '%');
             })
             ->when($request->has('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
+                $query->where('status', 'LIKE', '%'.$request->status. '%');
             })
             ->when($request->has('tag_type'), function ($query) use ($request) {
-                $query->where('toll_tag_type', $request->tag_type);
+                $query->where('toll_tag_type', 'LIKE', '%'.$request->tag_type. '%');
             })
             ->get();
 
@@ -116,10 +120,11 @@ class VehicleController extends BaseController
             $vehicleColors = VehicleColor::where('status', 1)
                             ->orderBy('color', 'ASC')
                             ->get();
+            $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
 
             if (count($vehicleMakes) && count($vehicleModels) && count($vehicleColors)) {
                 Log::info('Vehicle-makes data, vehicle-models and vehicle-colors data displayed successfully.');
-                return $this->sendResponse(['vehicleMakes' => $vehicleMakes, 'vehicleModels' => $vehicleModels, 'vehicleColors' => $vehicleColors], 'Vehicle-makes data, vehicle-models and vehicle-colors data displayed successfully.');
+                return $this->sendResponse(['vehicleMakes' => $vehicleMakes, 'vehicleModels' => $vehicleModels, 'vehicleColors' => $vehicleColors, 'docCategories' => $docCategories], 'Vehicle-makes data, vehicle-models and vehicle-colors data displayed successfully.');
             } else {
                 return $this->sendError('No data found for vehicle-makes, vehicle-models and vehicle-colors.');
             }
@@ -139,6 +144,7 @@ class VehicleController extends BaseController
     {
         try {
             $input = $request->all();
+            
             $admins = User::whereHas('role', function ($query) {
                 $query->where('id', 1);
             })->get();
@@ -177,7 +183,7 @@ class VehicleController extends BaseController
                 }
                 Notification::send($admins, new NewVehicleNotification($vehicle));
                 Log::info('Vehicle added successfully.');
-                return $this->sendResponse(new VehicleResource($vehicle), 'Vehicle created successfully.');
+                return $this->sendResponse(new VehicleResource($vehicle), 'Vehicle added successfully.');
             } else {
                 return $this->sendError('Failed to add vehicle.');   
             }
@@ -196,7 +202,7 @@ class VehicleController extends BaseController
     public function show($id)
     {
         try {
-            $vehicle = Vehicle::findOrFail($id);
+            $vehicle = Vehicle::find($id);
             Log::info('Showing vehicle data for vehicle id: '.$id);
             return $this->sendResponse(new VehicleResource($vehicle), 'Vehicle retrieved successfully.');
         } catch (Exception $e) {
@@ -214,12 +220,66 @@ class VehicleController extends BaseController
     public function edit($id)
     {
         try {
-            $vehicle = Vehicle::findOrFail($id);
+            $vehicleMakes = VehicleMake::where('status', 1)
+                            ->orderBy('make', 'ASC')
+                            ->get();
+            $vehicleModels = VehicleModel::where('status', 1)
+                            ->orderBy('model', 'ASC')
+                            ->get();
+            $vehicleColors = VehicleColor::where('status', 1)
+                            ->orderBy('color', 'ASC')
+                            ->get();
+            $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
+            $vehicle = Vehicle::with('user', 'vehicleMake', 'vehicleModel', 'vehicleColor', 'vehicleDocuments')->find($id);
             Log::info('Edit vehicle data for vehicle id: '.$id);
-            return $this->sendResponse(new VehicleResource($vehicle), 'Vehicle retrieved successfully.');
+            return $this->sendResponse(['vehicleMakes' => $vehicleMakes, 'vehicleModels' => $vehicleModels, 'vehicleColors' => $vehicleColors, 'docCategories' => $docCategories, 'vehicle' => $vehicle], 'Vehicle retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit vehicle data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit vehicle data, vehicle not found.');
+        }
+    }
+
+    /**
+     * File upload for violation.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function fileUpload($folder, $fileinput, $input, $files, $vehicle)
+    {
+        try {
+            $allowedfileExtension = ['pdf','jpg','jpeg','png','xlsx','bmp'];
+            // foreach ($files as $file) {
+            //     $extension = $file->getClientOriginalExtension();
+            //     $check = in_array($extension,$allowedfileExtension);
+            //     if ($check) {
+                $extensions = [];
+                    foreach($fileinput as $mediaFiles) {
+
+                        //$name = $mediaFiles->getClientOriginalName();
+                        $extensions[$mediaFiles] = pathinfo($mediaFiles, PATHINFO_BASENAME);
+                        return $extensions[$mediaFiles];
+                        die;
+                        $filename = $vehicle->id.'-'.$extensions[$mediaFiles];
+                        //$path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        $path = Storage::disk('app')->put('public/'.$folder, $filename);
+                        //store document file into directory and db
+                        $vehicleDocument = new VehicleDocument();
+                        $vehicleDocument->vehicle_id = $vehicle->id;
+                        $vehicleDocument->file_type = $input['document_id'];
+                        $vehicleDocument->file_path = $path;
+                        $vehicleDocument->status = 1;
+                        $vehicleDocument->save();
+                    }
+            //     } else {
+            //         return $this->sendError('invalid_file_format'); 
+            //     }
+            //     Log::info('File uploaded successfully.');
+            //     return response()->json(['file uploaded'], 200);
+            // }
+        } catch (Exception $e) {
+            Log::error('Failed to upload event images due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to upload event images.');
         }
     }
 
@@ -232,8 +292,11 @@ class VehicleController extends BaseController
      */
     public function update(Request $request, $id)
     {
-        try {
+        //try {
             $input = $request->except(['_method']);
+            $input['vehicle_document'] = json_decode($input['vehicle_document'], true);
+            return $input;
+            die;
             // Need Access toll tags
             if ($input['access_toll_tags_needed'] == 1) {
                 $input['access_toll_tags_needed'] = 'yes';
@@ -246,30 +309,41 @@ class VehicleController extends BaseController
             } else {
                 $input['stickers_needed'] = 'no';
             }
-            $vehicle = Vehicle::findOrFail($id);
+            $vehicle = Vehicle::find($id);
             if ($vehicle) {
                 $update = $vehicle->fill($input)->save();
-                if($update) {
-                    if ($request->hasFile('vehicle_document')) {
+                if ($update) {
+                    if ($request->has('vehicle_document')) {
                         if ($vehicle->vehicleDocuments()) {
-                            $filePath = $vehicle->vehicleDocuments->pluck('file_path')->first();
-                            if (file_exists(storage_path('app/'.$filePath))) { 
-                                unlink(storage_path('app/'.$filePath));
+                            foreach ($vehicle->vehicleDocuments as $file) {
+                                if (file_exists(storage_path('app/'.$file->file_path))) {
+                                    unlink(storage_path('app/'.$file->file_path));
+                                }
                             }
                             $vehicle->vehicleDocuments()->delete();
                         }
+                        $folder = 'vehicle_documents';
+                        $fileinput = json_decode($request->vehicle_document, true);
+                        $files = json_decode($request->file('vehicle_document'), true);
+                        $extensions = [];
+                    foreach($files as $mediaFiles) {
 
-                        $file = $request->file('vehicle_document');
-                        $name = $file->getClientOriginalName();
-                        $filename = $vehicle->id.'-'.$name;
-                        $path = $file->storeAs('public/vehicle_documents', $filename);
-                        //store image file into directory and db
+                        $name = $mediaFiles->getClientOriginalName();
+                        return $name;
+                        die;
+                        $extensions[$mediaFiles] = pathinfo($mediaFiles);
+                        $filename = $vehicle->id.'-'.$extensions[$mediaFiles];
+                        $path = $mediaFiles->storeAs('public/'.$folder, $filename);
+                        //$path = Storage::disk('app')->put('public/'.$folder, $filename);
+                        //store document file into directory and db
                         $vehicleDocument = new VehicleDocument();
                         $vehicleDocument->vehicle_id = $vehicle->id;
-                        $vehicleDocument->file_type = $input['document_type'];
+                        $vehicleDocument->file_type = $input['document_id'];
                         $vehicleDocument->file_path = $path;
                         $vehicleDocument->status = 1;
                         $vehicleDocument->save();
+                    }
+                        //$this->fileUpload($folder, $fileinput, $input, $files, $vehicle);
                     }
                     Log::info('Vehicle updated successfully for vehicle id: '.$id);
                     return $this->sendResponse([], 'Vehicle updated successfully.');
@@ -279,9 +353,45 @@ class VehicleController extends BaseController
             } else {
                 return $this->sendError('Vehicle not found.');  
             }
+        // } catch (Exception $e) {
+        //     Log::error('Failed to update vehicle due to occurance of this exception'.'-'. $e->getMessage());
+        //     return $this->sendError('Operation failed to update vehicle.');
+        // }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function status(Request $request)
+    {
+        try {
+            $vehicles = Vehicle::with('user', 'vehicleMake', 'vehicleModel', 'vehicleColor', 'vehicleDocuments')->where('status', $request->status)->get();
+            Log::info('Showing vehicles for status: '.$request->status);
+            return $this->sendResponse(['vehicles' => $vehicles], 'Vehicles retrieved successfully.');
         } catch (Exception $e) {
-            Log::error('Failed to update vehicle due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to update vehicle.');
+            Log::error('Failed to retrieve vehicles data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve vehicles data, vehicles not found.');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function filterByTagType(Request $request)
+    {
+        try {
+            $vehicles = Vehicle::with('user', 'vehicleMake', 'vehicleModel', 'vehicleColor', 'vehicleDocuments')->where('toll_tag_type', $request->tag_type)->get();
+            Log::info('Showing vehicles for status: '.$request->tag_type);
+            return $this->sendResponse(['vehicles' => $vehicles], 'Vehicles retrieved successfully.');
+        } catch (Exception $e) {
+            Log::error('Failed to retrieve vehicles data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve vehicles data, vehicles not found.');
         }
     }
 
@@ -323,14 +433,16 @@ class VehicleController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $vehicles = Vehicle::whereIn('id',explode(",",$ids))->get();
             if ($vehicles) {
                 foreach ($vehicles as $vehicle) {
                     if ($vehicle->vehicleDocuments()) {
-                        $filePath = $vehicle->vehicleDocuments->pluck('file_path')->first();
-                        if (file_exists(storage_path('app/'.$filePath))) { 
-                            unlink(storage_path('app/'.$filePath));
+                        //$filePath = $vehicle->vehicleDocuments->pluck('file_path')->first();
+                        foreach ($vehicle->vehicleDocuments() as $filePath) {
+                            if (file_exists(storage_path('app/'.$filePath))) { 
+                                unlink(storage_path('app/'.$filePath));
+                            }
                         }
                         $vehicle->vehicleDocuments()->delete();
                     }
