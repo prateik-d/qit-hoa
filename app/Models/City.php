@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\State;
+use App\Models\City;
 
 class City extends Model
 {
@@ -21,6 +24,11 @@ class City extends Model
 
     public function state() {
         return $this->belongsTo(State::class);
+    }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
     }
 
     public function insertData($request) {

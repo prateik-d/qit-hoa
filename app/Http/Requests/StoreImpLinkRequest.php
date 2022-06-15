@@ -26,8 +26,8 @@ class StoreImpLinkRequest extends FormRequest
         return [
             'title' => 'required|unique:imp_links,title,' . \Request('id') . ',id',
             'description' => 'required',
-            'url' => 'required',
             'url' => 'required|unique:imp_links,url,' . \Request('id') . ',id',
+            'status' => 'required',
         ];
     }
 }

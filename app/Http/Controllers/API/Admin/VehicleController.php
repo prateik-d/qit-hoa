@@ -407,9 +407,10 @@ class VehicleController extends BaseController
             $vehicle = Vehicle::findOrFail($id);
             if ($vehicle) {
                 if ($vehicle->vehicleDocuments()) {
-                    $filePath = $vehicle->vehicleDocuments->pluck('file_path')->first();
-                    if (file_exists(storage_path('app/'.$filePath))) { 
-                        unlink(storage_path('app/'.$filePath));
+                    foreach ($vehicle->vehicleDocuments as $file) {
+                        if (file_exists(storage_path('app/'.$file->file_path))) {
+                            unlink(storage_path('app/'.$file->file_path));
+                        }
                     }
                     $vehicle->vehicleDocuments()->delete();
                 }
@@ -438,10 +439,9 @@ class VehicleController extends BaseController
             if ($vehicles) {
                 foreach ($vehicles as $vehicle) {
                     if ($vehicle->vehicleDocuments()) {
-                        //$filePath = $vehicle->vehicleDocuments->pluck('file_path')->first();
-                        foreach ($vehicle->vehicleDocuments() as $filePath) {
-                            if (file_exists(storage_path('app/'.$filePath))) { 
-                                unlink(storage_path('app/'.$filePath));
+                        foreach ($vehicle->vehicleDocuments as $file) {
+                            if (file_exists(storage_path('app/'.$file->file_path))) {
+                                unlink(storage_path('app/'.$file->file_path));
                             }
                         }
                         $vehicle->vehicleDocuments()->delete();

@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use App\Models\State;
 use App\Models\User;
 use App\Models\UserDocument;
+use App\Models\DocumentCategory;
 use App\Models\Role;
 use App\Models\Pet;
 use App\Models\City;
@@ -31,54 +32,48 @@ class UserController extends BaseController
         try {
             $input = $request->all();
 
-            $roles = Role::pluck('role_type','id');
+            $roles = Role::orderBy('role_type', 'asc')->get();
+            $users = User::with('role', 'city', 'state', 'pets')->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
+                    ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+                    ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
+                    ->where('email', 'LIKE' , '%'.$request->get('email').'%')
+                    ->where('address', 'LIKE' , '%'.$request->get('address').'%')
+                    ->where('role_id', 'LIKE' , '%'.$request->get('type').'%')
+                    // ->whereHas('pets', function ($query) use ($request) {
+                    //     $query->where('status', $request->pet_owner);
+                    // })
+                    ->when($request->has('inactive_user'), function ($query) use ($request) {
+                        $query->where('status', 'LIKE' , '%'.$request->inactive_user.'%');
+                    })
+                    ->get();
+            // if ($request->pet_owner) {
+            //     if ($input['pet_owner'] == 'on') {
+            //         $pets = Pet::with('owner')->get();
+            //         foreach ($pets as $petOwners) 
+            //         {
+            //             $result = $petOwners->whereHas('owner', function($query) use($request) {
+            //                 $query->where('first_name', 'LIKE' , '%'.$request->get('name').'%')
+            //                 ->orwhere('last_name', 'LIKE', '%'.$request->get('name'). '%')
+            //                 ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
+            //                 ->where('email', 'LIKE' , '%'.$request->get('email').'%')
+            //                 ->where('address', 'LIKE' , '%'.$request->get('address').'%')
+            //                 ->where('role_id', 'LIKE' , '%'.$request->get('type').'%');
+            //             })->groupBy('owner_id')->get();
+            //         }
+            //         $users = array();
+            //         foreach ($result as $data) {
+            //             $user = $data->owner;
+            //             array_push($users,$user);
+            //         }
+            //     }
+            // }
 
-            if ($request->pet_owner) {
-                if ($input['pet_owner'] == 'on') {
-                    $pets = Pet::with('owner')->get();
-                    foreach ($pets as $petOwners) 
-                    {
-                        $result = $petOwners->whereHas('owner', function($query) use($request) {
-                            $query->where('first_name', 'LIKE' , '%'.$request->get('name').'%')
-                            ->orwhere('last_name', 'LIKE', '%'.$request->get('name'). '%')
-                            ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
-                            ->where('email', 'LIKE' , '%'.$request->get('email').'%')
-                            ->where('address', 'LIKE' , '%'.$request->get('address').'%')
-                            ->where('role_id', 'LIKE' , '%'.$request->get('type').'%');
-                        })->groupBy('owner_id')->get();
-                    }
-                    $users = array();
-                    foreach ($result as $data) {
-                        $user = $data->owner;
-                        array_push($users,$user);
-                    }
-                }
-            } else if ($request->in_active_user) {
-                if ($input['in_active_user'] == 'on') {
-                    $users = User::where('status', 0)->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
-                            ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
-                            ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
-                            ->where('email', 'LIKE' , '%'.$request->get('email').'%')
-                            ->where('address', 'LIKE' , '%'.$request->get('address').'%')
-                            ->where('role_id', 'LIKE' , '%'.$request->get('type').'%')
-                            ->get();
-                }
-            } else {
-                $users = User::where('first_name', 'LIKE', '%'.$request->get('name'). '%')
-                            ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
-                            ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
-                            ->where('email', 'LIKE' , '%'.$request->get('email').'%')
-                            ->where('address', 'LIKE' , '%'.$request->get('address').'%')
-                            ->where('role_id', 'LIKE' , '%'.$request->get('type').'%')
-                            ->get();
-            }
-
-            if (count($users)) {
+            //if (count($users)) {
                 Log::info('Users data displayed successfully');
-                return $this->sendResponse(UserResource::collection($users), 'Users data retrieved successfully.');
-            } else {
-                return $this->sendError('No data found for users');
-            }
+                return $this->sendResponse(['roles' => $roles, 'users' => $users], 'Users data retrieved successfully.');
+            // } else {
+            //     return $this->sendError([], 'No data found for users');
+            // }
         } catch (Exception $e) {
             Log::error('Failed to retrieve users due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve users');
@@ -94,11 +89,13 @@ class UserController extends BaseController
     public function create()
     {
         try {
-            $roles = Role::orderBy('role_type', 'ASC')->pluck('role_type','id');
-            $states = State::orderBy('state', 'ASC')->pluck('state','id');
+            $roles = Role::orderBy('role_type', 'ASC')->get();
+            $states = State::orderBy('state', 'ASC')->get();
+            $docCategories = DocumentCategory::orderBy('title','asc')->get();
+
             if (count($roles) && count($states)) {
                 Log::info('Roles data displayed successfully.');
-                return $this->sendResponse(['roles' => $roles, 'states' => $states], 'Roles data retrieved successfully.');
+                return $this->sendResponse(['roles' => $roles, 'states' => $states, 'docCategories' =>  $docCategories], 'Roles data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for roles.');
             }
@@ -114,12 +111,12 @@ class UserController extends BaseController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getCityList($id)
+    public function getCityList(Request $request)
     {
         try {
-            $cities = City::where('state_id', $id)->orderBy('city', 'ASC')->pluck('city', 'id');
-            Log::info('Showing cities for state id: '.$id);
-            return $this->sendResponse($cities, 'City data retrieved successfully.');
+            $cities = City::where('state_id', $request->dataId)->orderBy('city', 'ASC')->get();
+            Log::info('Showing cities for state id: '.$request->dataId);
+            return $this->sendResponse(['cities' => $cities], 'City data retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve cities due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve cities data, cities not found');
@@ -225,9 +222,9 @@ class UserController extends BaseController
     public function show($id)
     {
         try {
-            $user = User::findOrFail($id);
+            $user = User::with('role', 'city', 'state', 'pets')->find($id);
             Log::info('Showing user for user id: '.$id);
-            return $this->sendResponse(new UserResource($user), 'User retrieved successfully.');
+            return $this->sendResponse(['user' => $user], 'User retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve user due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve user data, user not found');
@@ -243,9 +240,12 @@ class UserController extends BaseController
     public function edit($id)
     {
         try {
-            $user = User::findOrFail($id);
+            $roles = Role::orderBy('role_type', 'ASC')->get();
+            $states = State::orderBy('state', 'ASC')->get();
+            $docCategories = DocumentCategory::orderBy('title','asc')->get();
+            $user = User::with('role', 'city', 'state', 'pets')->find($id);
             Log::info('Edit user data for user id: '.$id);
-            return $this->sendResponse(new UserResource($user), 'User retrieved successfully.');
+            return $this->sendResponse(['roles' => $roles, 'states' => $states, 'docCategories' =>  $docCategories, 'user' => $user], 'User retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit user due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve user data, user not found');
@@ -325,8 +325,15 @@ class UserController extends BaseController
     public function destroy($id)
     {
         try {
-            $user = User::findOrFail($id);
+            $user = User::find($id);
             if ($user) {
+                $message = 'Cannot delete user, user is assigned to the pet!';
+                if ($user->pets->count()) {
+                    $user->pets->delete();
+                }
+                // if ($user->events->count()) {
+                //     $user->events->delete();
+                // }
                 if ($user->profile_pic != null) {
                     if (file_exists(storage_path('app/'.$user->profile_pic))) { 
                         unlink(storage_path('app/'.$user->profile_pic));
@@ -336,7 +343,7 @@ class UserController extends BaseController
                 Log::info('User deleted successfully for user id: '.$id);
                 return $this->sendResponse([], 'User deleted successfully.');
             } else {
-                return $this->sendError('User not found.');
+                return $this->sendError([], 'User not found.');
             }
         } catch (Exception $e) {
             Log::error('Failed to delete user due to occurance of this exception'.'-'. $e->getMessage());
@@ -373,4 +380,37 @@ class UserController extends BaseController
         }
     }
     
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->id;
+            $users = User::whereIn('id',explode(",",$ids))->get();
+            if ($users) {
+                foreach ($users as $user) {
+                    if ($user->userDocuments()) {
+                        foreach ($user->userDocuments() as $filePath) {
+                            if (file_exists(storage_path('app/'.$filePath->file_path))) { 
+                                unlink(storage_path('app/'.$filePath->file_path));
+                            }
+                        }
+                        $user->userDocuments()->delete();
+                    }
+                    $user->delete();
+                }
+                Log::info('Selected users deleted successfully');
+                return $this->sendResponse([], 'Selected users deleted successfully.');
+            } else {
+                return $this->sendError('users not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete users due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete users.');
+        }
+    }
+
 }

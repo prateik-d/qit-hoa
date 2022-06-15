@@ -172,7 +172,7 @@ class DocumentController extends BaseController
     {
         try {
             $docCategories = DocumentCategory::orderBy('title','asc')->get();
-            $documents = Document::with('documentCategory', 'documentFiles')->get();
+            $documents = Document::with('documentCategory', 'documentFiles')->find($id);
             if ($documents) {
                 Log::info('Edit document data for document id: '.$id);
                 return $this->sendResponse(['docCategories' => $docCategories, 'documents' => $documents], 'Document retrieved successfully.');

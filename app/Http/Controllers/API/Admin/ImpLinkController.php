@@ -21,24 +21,18 @@ class ImpLinkController extends BaseController
     public function index(Request $request)
     {
         try {
-            $impLink = ImpLink::where('description', 'LIKE', '%'.$request->get('description'). '%')
-            ->where('url', 'LIKE' , '%'.$request->get('url').'%');
+            $impLinks = ImpLink::where('description', 'LIKE', '%'.$request->description. '%')
+            ->where('url', 'LIKE' , '%'.$request->url.'%')
+            ->when($request->has('status'), function ($query) use ($request) {
+                $query->where('status', 'LIKE', '%'.$request->status. '%');
+            })
+            ->get();
 
-            if ($request->status) {
-                if ($request->get('status') == 'active') {
-                    $impLink = $impLink->where('status', 1);
-                } else {
-                    $impLink = $impLink->where('status', 0);
-                }
-            }
-            
-            $impLink = $impLink->get();
-
-            if (count($impLink)) {
+            if (count($impLinks)) {
                 Log::info('Imp-link data displayed successfully.');
-                return $this->sendResponse(ImpLinkResource::collection($impLink), 'Imp-link data retrieved successfully.');
+                return $this->sendResponse(['impLinks' => $impLinks], 'Imp-link data retrieved successfully.');
             } else {
-                return $this->sendError('No data found for imp-link.');
+                return $this->sendError([], 'No data found for imp-link.');
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve imp-link data due to occurance of this exception'.'-'. $e->getMessage());
@@ -66,13 +60,6 @@ class ImpLinkController extends BaseController
     {
         try {
             $input = $request->all();
-            if ($request->status) {
-                if ($request->get('status') == 'active') {
-                    $input['status'] = 1;
-                } else {
-                    $input['status'] = 0;
-                }
-            }
             $input['added_by'] = Auth::guard('api')->user()->id;
             $impLink = ImpLink::create($input);
             if ($impLink) {
@@ -169,18 +156,9 @@ class ImpLinkController extends BaseController
     public function status(Request $request)
     {
         try {
-            if ($request->get('status') == 'active') {
-                $impLink = ImpLink::where('status', 1)->get();
-            } else {
-                $impLink = ImpLink::where('status', 0)->get();
-            }
-
-            if (count($impLink)) {
-                Log::info('Showing imp-links for status: '.$request->get('status'));
-                return $this->sendResponse($impLink, 'Imp-links retrieved successfully.');
-            } else {
-                return $this->sendError('Imp-links data not found.');
-            }
+            $impLinks = ImpLink::where('status', $request->status)->get();
+            Log::info('Showing imp-links for status: '.$request->get('status'));
+            return $this->sendResponse(['impLinks' => $impLinks], 'Imp-links retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve imp-links data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve imp-links data, imp-links not found.');
@@ -220,7 +198,7 @@ class ImpLinkController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $impLinks = ImpLink::whereIn('id',explode(",",$ids))->delete();
             if ($impLinks) {
                 Log::info('Selected imp-links deleted successfully');

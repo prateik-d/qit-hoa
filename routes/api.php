@@ -162,7 +162,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('users', UserController::class);
     Route::delete('delete-all-users', [UserController::class, 'deleteAll']);
     // To Get City List
-    Route::get('/city-list/{id}', [UserController::class, 'getCityList']);
+    Route::get('/city-list', [UserController::class, 'getCityList']);
     // Permission API Routes
     Route::resource('permissions', PermissionController::class);
     // PermissionHeading API Routes

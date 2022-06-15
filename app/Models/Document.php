@@ -29,7 +29,7 @@ class Document extends Model
 
     public function documentCategory()
     {
-        return $this->belongsTo(DocumentCategory::class);
+        return $this->belongsTo(DocumentCategory::class, 'category_id');
     }
 
     public function documentFiles()

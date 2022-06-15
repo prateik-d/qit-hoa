@@ -19,7 +19,7 @@ class RoleTableSeeder extends Seeder
             ['role_type' => 'admin', 'permission_id' => 1],
             ['role_type' => 'moderator', 'permission_id' => 2],
             ['role_type' => 'home-owner', 'permission_id' => 3],
-            ['role_type' => 'cotractor', 'permission_id' => 4],
+            ['role_type' => 'contractor', 'permission_id' => 4],
             ['role_type' => 'renter', 'permission_id' => 5]
         ];
   

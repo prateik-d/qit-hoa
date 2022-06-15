@@ -8,18 +8,20 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use App\Models\AccRequest;
-use App\Models\Role;
-use App\Models\Event;
 use App\Models\AccRequestUser;
+use App\Models\City;
+use App\Models\Classified;
+use App\Models\Event;
 use App\Models\LostFoundItem;
+use App\Models\Reservation;
+use App\Models\Role;
+use App\Models\State;
 use App\Models\Ticket;
 use App\Models\UserDocument;
-use App\Models\Violation;
 use App\Models\Vehicle;
+use App\Models\Violation;
 use App\Models\Voting;
 use App\Models\VotingNominee;
-use App\Models\Reservation;
-use App\Models\Classified;
 
 class User extends Authenticatable
 {
@@ -70,6 +72,16 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function state()
+    {
+        return $this->belongsTo(State::class);
     }
 
     public function events()
