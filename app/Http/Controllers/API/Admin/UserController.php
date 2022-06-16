@@ -43,7 +43,7 @@ class UserController extends BaseController
                         //$query->has('pets');
                     })
                     ->when($request->has('inactive_user'), function ($query) use ($request) {
-                        $query->where('status', 'LIKE' , '%'.$request->inactive_user.'%');
+                        $query->where('status', 'LIKE' , '%'.$request->get('inactive_user').'%');
                     })->get();
 
                     

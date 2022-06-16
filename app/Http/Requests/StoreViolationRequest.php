@@ -28,6 +28,7 @@ class StoreViolationRequest extends FormRequest
             'violation_type_id'=> 'required',
             'description'=> 'required',
             'violation_date'=> 'required|date',
+            'status' => 'required',
             'documents.*' => 'mimes:jpg,jpeg,bmp,png,pdf,xlsx',
             'documents' => 'max:5',
         ];
@@ -41,6 +42,7 @@ class StoreViolationRequest extends FormRequest
     public function messages()
     {
         return [
+            "user_id.required" => "The user deatils is required",
             "documents.max" => "file can't be more than 5."
         ];
     }

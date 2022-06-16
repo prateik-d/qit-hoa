@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API\Admin;
-   
+use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -35,21 +35,17 @@ class ViolationController extends BaseController
                 ->where('email', 'LIKE', '%'.$request->get('email'). '%')
                 ->where('address', 'LIKE', '%'.$request->get('address'). '%');
             })
-            ->when($request->has('in_active_user'), function ($query) use ($request) {
-                $query->where('users.status', 0);
+            ->when($request->has('inactive_user'), function ($query) use ($request) {
+                $query->where('status', 'LIKE' , '%'.$request->get('inactive_user').'%');
             })
             ->when($request->has('type'), function ($query) use ($request) {
-                $query->where('violation_type_id', $request->type);
+                $query->where('violation_type_id', 'LIKE' , '%'.$request->get('type').'%');
             })
             ->orderBy('violation_date', 'asc')->get();
 
             if (count($violationTypes)) {
-                if (count($violations)) {
-                    Log::info('Violations data displayed successfully.');
-                    return $this->sendResponse(['violationTypes' => $violationTypes, 'violations' => $violations], 'Violations data retrieved successfully.');
-                } else {
-                    return $this->sendError(['violationTypes' => $violationTypes], 'No data found for violations');
-                }
+                Log::info('Violations data displayed successfully.');
+                return $this->sendResponse(['violationTypes' => $violationTypes, 'violations' => $violations], 'Violations data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for violation types');
             }
@@ -93,7 +89,6 @@ class ViolationController extends BaseController
     {
         try {
             $input = $request->all();
-            $input['approved_by'] = Auth::guard('api')->user()->id;
             $violation = Violation::create($input);
             if ($violation) {
                 if ($request->hasFile('documents')) {
@@ -292,10 +287,10 @@ class ViolationController extends BaseController
      */
     public function update(StoreViolationRequest $request, $id)
     {
-        //try {
+        try {
             $input = $request->except(['_method']);
-            return json_decode($input->documents, true);
-                        die;
+            // return json_decode($input->documents, true);
+            // die;
             $violation = Violation::find($id);
             if ($violation) {
                 $update = $violation->fill($input)->save();
@@ -324,10 +319,10 @@ class ViolationController extends BaseController
             } else {
                 return $this->sendError('Violation not found to update');
             }
-        // } catch (Exception $e) {
-        //     Log::error('Failed to update violation due to occurance of this exception'.'-'. $e->getMessage());
-        //     return $this->sendError('Operation failed to update violation.');
-        // }
+        } catch (Exception $e) {
+            Log::error('Failed to update violation due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to update violation.');
+        }
     }
 
     /**
@@ -391,7 +386,7 @@ class ViolationController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $violation = Violation::whereIn('id',explode(",",$ids))->get();
 
             if ($violation) {
