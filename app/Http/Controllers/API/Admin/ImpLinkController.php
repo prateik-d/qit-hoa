@@ -21,10 +21,10 @@ class ImpLinkController extends BaseController
     public function index(Request $request)
     {
         try {
-            $impLinks = ImpLink::where('description', 'LIKE', '%'.$request->description. '%')
-            ->where('url', 'LIKE' , '%'.$request->url.'%')
+            $impLinks = ImpLink::where('description', 'LIKE', '%'.$request->get('description'). '%')
+            ->where('url', 'LIKE' , '%'.$request->get('url').'%')
             ->when($request->has('status'), function ($query) use ($request) {
-                $query->where('status', 'LIKE', '%'.$request->status. '%');
+                $query->where('status', 'LIKE', '%'.$request->get('status'). '%');
             })
             ->get();
 
@@ -86,9 +86,9 @@ class ImpLinkController extends BaseController
             $impLink = ImpLink::where('status', 1)->find($id);
             if ($impLink) {
                 Log::info('Showing imp-link data for imp-link id: '.$id);
-                return $this->sendResponse(new ImpLinkResource($impLink), 'Imp-link retrieved successfully.');
+                return $this->sendResponse(['impLink' => $impLink], 'Imp-link retrieved successfully.');
             } else {
-                return $this->sendError('Imp-link data not found.');     
+                return $this->sendError([], 'Imp-link data not found.');     
             }
         } catch (Exception $e) {
             Log::error('Failed to retrieve imp-link data due to occurance of this exception'.'-'. $e->getMessage());
@@ -108,9 +108,9 @@ class ImpLinkController extends BaseController
             $impLink = ImpLink::where('status', 1)->find($id);
             if ($impLink) {
                 Log::info('Edit imp-link data for impLink id: '.$id);
-                return $this->sendResponse(new ImpLinkResource($impLink), 'Imp-link retrieved successfully.');
+                return $this->sendResponse(['impLink' => $impLink], 'Imp-link retrieved successfully.');
             } else {
-                return $this->sendError('Imp-link data not found.');     
+                return $this->sendError([], 'Imp-link data not found.');     
             }
         } catch (Exception $e) {
             Log::error('Failed to edit imp-link data due to occurance of this exception'.'-'. $e->getMessage());

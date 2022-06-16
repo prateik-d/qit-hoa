@@ -33,19 +33,20 @@ class UserController extends BaseController
             $input = $request->all();
 
             $roles = Role::orderBy('role_type', 'asc')->get();
-            $users = User::with('role', 'city', 'state', 'pets')->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
-                    ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+            $users = User::with('role', 'city', 'state', 'pets')
+                    ->where(DB::raw('CONCAT(first_name, " ",last_name)'), 'LIKE' , '%'.$request->get('name').'%')
                     ->where('mobile_no', 'LIKE' , '%'.$request->get('phone').'%')
                     ->where('email', 'LIKE' , '%'.$request->get('email').'%')
                     ->where('address', 'LIKE' , '%'.$request->get('address').'%')
                     ->where('role_id', 'LIKE' , '%'.$request->get('type').'%')
-                    // ->whereHas('pets', function ($query) use ($request) {
-                    //     $query->where('status', $request->pet_owner);
-                    // })
+                    ->when($request->has('pet_owner'), function ($query) use ($request) {
+                        //$query->has('pets');
+                    })
                     ->when($request->has('inactive_user'), function ($query) use ($request) {
                         $query->where('status', 'LIKE' , '%'.$request->inactive_user.'%');
-                    })
-                    ->get();
+                    })->get();
+
+                    
             // if ($request->pet_owner) {
             //     if ($input['pet_owner'] == 'on') {
             //         $pets = Pet::with('owner')->get();

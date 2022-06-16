@@ -30,8 +30,7 @@ class ViolationController extends BaseController
             $violationTypes = ViolationType::orderBy('type', 'ASC')->get();
 
             $violations = Violation::with('user', 'violationType')->whereHas('user', function ($query) use($request) {
-                $query->where('first_name', 'LIKE', '%'.$request->get('name'). '%')
-                ->where('last_name', 'LIKE', '%'.$request->get('name'). '%')
+                $query->where(DB::raw('CONCAT(first_name, " ",last_name)'), 'LIKE' , '%'.$request->get('name').'%')
                 ->where('mobile_no', 'LIKE', '%'.$request->get('phone'). '%')
                 ->where('email', 'LIKE', '%'.$request->get('email'). '%')
                 ->where('address', 'LIKE', '%'.$request->get('address'). '%');
