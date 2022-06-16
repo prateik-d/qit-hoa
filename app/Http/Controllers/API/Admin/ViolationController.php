@@ -405,7 +405,7 @@ class ViolationController extends BaseController
                 Log::info('Selected violation deleted successfully');
                 return $this->sendResponse([], 'Selected violation deleted successfully.');
             } else {
-                return $this->sendError('Violation not found.');
+                return $this->sendError([], 'Violation not found.');
             }
         } catch (Exception $e) {
             Log::error('Failed to delete violations due to occurance of this exception'.'-'. $e->getMessage());

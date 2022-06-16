@@ -44,12 +44,8 @@ class PetController extends BaseController
 
             if (count($types)) {
                 if (count($breeds)) {
-                    if (count($pets)) {
-                        Log::info('Pet data displayed successfully.');
-                        return $this->sendResponse(['types' => $types, 'breeds' => $breeds, 'pets' => $pets], 'Pets data retrieved successfully.');
-                    } else {
-                        return $this->sendError(['types' => $types, 'breeds' => $breeds], 'No data found for pets');
-                    }
+                    Log::info('Pet data displayed successfully.');
+                    return $this->sendResponse(['types' => $types, 'breeds' => $breeds, 'pets' => $pets], 'Pets data retrieved successfully.');
                 } else {
                     return $this->sendError(['types' => $types], 'No data found for breeds');
                 }
@@ -163,7 +159,7 @@ class PetController extends BaseController
         try {
             $pet = Pet::with('petType', 'breed', 'owner')->find($id);
             Log::info('Showing pet data for pet id: '.$id);
-            return $this->sendResponse(new PetResource($pet), 'Pet retrieved successfully.');
+            return $this->sendResponse(['pet' => $pet], 'Pet retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve pet data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve pet data, pet not found.');
@@ -280,7 +276,7 @@ class PetController extends BaseController
     public function destroy($id)
     {
         try {
-            $pet = Pet::findOrFail($id);
+            $pet = Pet::find($id);
             if ($pet) {
                 if ($pet->petImages()) {
                     foreach ($pet->petImages as $file) {
@@ -294,7 +290,7 @@ class PetController extends BaseController
                 Log::info('Pet deleted successfully for pet id: '.$id);
                 return $this->sendResponse([], 'Pet deleted successfully.');
             } else {
-                return $this->sendError('Pet not found.');
+                return $this->sendError([], 'Pet not found.');
             }
         } catch (Exception $e) {
             Log::error('Failed to delete pet due to occurance of this exception'.'-'. $e->getMessage());
@@ -327,7 +323,7 @@ class PetController extends BaseController
                 Log::info('Selected pets deleted successfully');
                 return $this->sendResponse([], 'Selected pets deleted successfully.');
             } else {
-                return $this->sendError('Pets not found.');
+                return $this->sendError([], 'Pets not found.');
             }
         } catch (Exception $e) {
             Log::error('Failed to delete pets due to occurance of this exception'.'-'. $e->getMessage());
