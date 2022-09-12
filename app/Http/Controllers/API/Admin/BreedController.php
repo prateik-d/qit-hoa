@@ -25,7 +25,7 @@ class BreedController extends BaseController
             $breeds = Breed::all();
             if (count($breeds)) {
                 Log::info('Displayed breeds data successfully');
-                return $this->sendResponse(new BreedResource($breeds), 'Breeds data retrieved successfully.');
+                return $this->sendResponse(['breeds' => $breeds], 'Breeds data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for breeds.');
             }
@@ -46,7 +46,7 @@ class BreedController extends BaseController
             $petTypes = PetType::pluck('type','id');
             if (count($petTypes)) {
                 Log::info('Pet-types data displayed successfully.');
-                return $this->sendResponse($petTypes, 'Pet-types data retrieved successfully.');
+                return $this->sendResponse(['petTypes' => $petTypes], 'Pet-types data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for pet-types.');
             }
@@ -91,7 +91,7 @@ class BreedController extends BaseController
         try {
             $breed = Breed::findOrFail($id);
             Log::info('Showing breed for category id: '.$id);
-            return $this->sendResponse(new BreedResource($breed), 'Breed retrieved successfully.');
+            return $this->sendResponse(['breed' => $breed], 'Breed retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve breed due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve breed, breed not found.');

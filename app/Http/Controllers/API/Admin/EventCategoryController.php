@@ -24,7 +24,7 @@ class EventCategoryController extends BaseController
             $eventCategories = EventCategory::all();
             if (count($eventCategories)) {
                 Log::info('Event categories data displayed successfully.');
-                return $this->sendResponse(EventCategoryResource::collection($eventCategories), 'Event categories data retrieved successfully.');
+                return $this->sendResponse(['eventCategories' => $eventCategories], 'Event categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for event categories.');
             }
@@ -79,7 +79,7 @@ class EventCategoryController extends BaseController
         try {
             $eventCategory = EventCategory::findOrFail($id);
             Log::info('Showing event-category for category id: '.$id);
-            return $this->sendResponse(new EventCategoryResource($eventCategory), 'Event-category retrieved successfully.');
+            return $this->sendResponse(['eventCategory' => $eventCategory], 'Event-category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve event-category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve event-category data, category not found.');
@@ -97,7 +97,7 @@ class EventCategoryController extends BaseController
         try {
             $eventCategory = EventCategory::findOrFail($id);
             Log::info('Showing event-category for category id: '.$id);
-            return $this->sendResponse(new EventCategoryResource($eventCategory), 'Event-category retrieved successfully.');
+            return $this->sendResponse(['eventCategory' => $eventCategory], 'Event-category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit event-category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit event-category data, category not found.');

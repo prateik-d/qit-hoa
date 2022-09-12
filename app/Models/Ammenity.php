@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\AmmenityDocument;
+use App\Models\Reservation;
 
 class Ammenity extends Model
 {
@@ -26,5 +27,10 @@ class Ammenity extends Model
     public function ammenityDocuments()
     {
         return $this->hasMany(AmmenityDocument::class);
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
     }
 }

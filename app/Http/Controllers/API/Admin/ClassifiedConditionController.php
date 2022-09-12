@@ -24,7 +24,7 @@ class ClassifiedConditionController extends BaseController
             $classifiedConditions = Classifiedcondition::all();
             if (count($classifiedConditions)) {
                 Log::info('Classified conditions data displayed successfully.');
-                return $this->sendResponse(new ClassifiedConditionResource($classifiedConditions), 'Classified conditions data retrieved successfully.');
+                return $this->sendResponse(['classifiedConditions' => $classifiedConditions], 'Classified conditions data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for classified conditions.');
             }
@@ -79,7 +79,7 @@ class ClassifiedConditionController extends BaseController
         try {
             $classifiedCondition = Classifiedcondition::findOrFail($id);
             Log::info('Showing classified condition for condition id: '.$id);
-            return $this->sendResponse(new ClassifiedConditionResource($classifiedCondition), 'Classified condition retrieved successfully.');
+            return $this->sendResponse(['classifiedConditions' => $classifiedCondition], 'Classified condition retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve classified condition due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve classified condition, condition not found.');
@@ -97,7 +97,7 @@ class ClassifiedConditionController extends BaseController
         try {
             $classifiedCondition = Classifiedcondition::findOrFail($id);
             Log::info('Showing classified condition for condition id: '.$id);
-            return $this->sendResponse(new ClassifiedConditionResource($classifiedCondition), 'Classified condition retrieved successfully.');
+            return $this->sendResponse(['classifiedConditions' => $classifiedCondition], 'Classified condition retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit classified condition due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit classified condition, condition not found.');

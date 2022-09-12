@@ -11,7 +11,7 @@ use App\Models\City;
 use App\Http\Requests\StoreCityRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class CityController extends Controller
+class CityController extends BaseController
 {
     /**
      * Display a listing of the resource.

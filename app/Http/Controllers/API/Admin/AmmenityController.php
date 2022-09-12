@@ -237,12 +237,12 @@ class AmmenityController extends BaseController
     public function deleteAll(Request $request)
     {
         try {
-            $ids = $request->ids;
+            $ids = $request->id;
             $ammenities = Ammenity::whereIn('id',explode(",",$ids))->get();
-            if ($ammenities) {
-                $message = 'Cannot delete ammenity, ammenity is assigned to the reservation!';
-                if (!$ammenity->reservations->count()) {
-                    foreach ($ammenities as $ammenity) {
+            // print_r($ammenities);
+            // die;
+            if (count($ammenities)) {
+                foreach ($ammenities as $ammenity) {
                         // To delete related documents
                         if ($ammenity->ammenityDocuments()) {
                             foreach ($ammenity->ammenityDocuments as $file) {
@@ -256,8 +256,6 @@ class AmmenityController extends BaseController
                     }
                     Log::info('Selected ammenities deleted successfully');
                     return $this->sendResponse([], 'Selected ammenities deleted successfully.');
-                }
-                return $this->sendError($message);
             } else {
                 return $this->sendError('Ammenities not found.');
             }

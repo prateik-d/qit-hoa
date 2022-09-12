@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 //Admin controllers
 use App\Http\Controllers\API\Admin\ACCRequestController;
 use App\Http\Controllers\API\Admin\BreedController;
+use App\Http\Controllers\API\Admin\CityController;
 use App\Http\Controllers\API\Admin\CategoryController;
 use App\Http\Controllers\API\Admin\EventController;
 use App\Http\Controllers\API\Admin\EventCategoryController;
@@ -161,6 +162,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // Members API Routes
     Route::resource('users', UserController::class);
     Route::delete('delete-all-users', [UserController::class, 'deleteAll']);
+    Route::resource('cities', CityController::class);
     // To Get City List
     Route::get('/city-list', [UserController::class, 'getCityList']);
     // Permission API Routes

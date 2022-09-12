@@ -24,7 +24,7 @@ class DocumentCategoryController extends BaseController
             $documentCategories = DocumentCategory::all();
             if (count($documentCategories)) {
                 Log::info('Document categories data displayed successfully.');
-                return $this->sendResponse(new DocumentCategoryResource($documentCategories), 'Document categories data retrieved successfully.');
+                return $this->sendResponse(['documentCategories' => $documentCategories], 'Document categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for document categories.');
             }
@@ -79,7 +79,7 @@ class DocumentCategoryController extends BaseController
         try {
             $documentCategory = DocumentCategory::findOrFail($id);
             Log::info('Showing document category for category id: '.$id);
-            return $this->sendResponse(new DocumentCategoryResource($documentCategory), 'Document category retrieved successfully.');
+            return $this->sendResponse(['documentCategory' => $documentCategory], 'Document category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve document category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve document category data, category not found.');
@@ -97,7 +97,7 @@ class DocumentCategoryController extends BaseController
         try {
             $documentCategory = DocumentCategory::findOrFail($id);
             Log::info('Showing document category for category id: '.$id);
-            return $this->sendResponse(new DocumentCategoryResource($documentCategory), 'Document category retrieved successfully.');
+            return $this->sendResponse(['documentCategory' => $documentCategory], 'Document category retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit document category due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit document category data, category not found.');

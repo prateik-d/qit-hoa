@@ -76,14 +76,14 @@ class ACCRequestController extends BaseController
             $docCategories = DocumentCategory::orderBy('title', 'asc')->get();
 
             if (count($docCategories)) {
-                Log::info('Document categories and violation types displayed successfully.');
-                return $this->sendResponse(['docCategories' => $docCategories], 'Document categories and violation types displayed successfully.');
+                Log::info('Document categories displayed successfully.');
+                return $this->sendResponse(['docCategories' => $docCategories], 'Document categories displayed successfully.');
             } else {
-                return $this->sendError('No data found for document categories and violation types.');
+                return $this->sendError('No data found for document categories.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve document categories and violation types due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve document categories and violation types.');
+            Log::error('Failed to retrieve document categories due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve document categories.');
         }
     }
 
@@ -451,7 +451,7 @@ class ACCRequestController extends BaseController
         try {
             $ids = $request->id;
             $accRequest = ACCRequest::whereIn('id',explode(",",$ids))->get();
-            if ($accRequest) {
+            if (count($accRequest)) {
                 foreach ($accRequest as $acc) {
                     $accNeighbours = $acc->users()->detach();
                     if ($acc->accDocuments()) {

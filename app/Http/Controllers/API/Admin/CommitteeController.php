@@ -23,13 +23,13 @@ class CommitteeController extends BaseController
     public function index(Request $request)
     {
         try {
-            $committee = Committee::where('title', 'LIKE', '%'.$request->get('title'). '%')
+            $committees = Committee::where('title', 'LIKE', '%'.$request->get('title'). '%')
                 ->where('created_at', 'LIKE' , '%'.$request->get('date').'%')
                 ->where('status', 'LIKE' , '%'.$request->get('status').'%')->get();
 
-            if (count($committee)) {
+            if (count($committees)) {
                 Log::info('Committee data displayed successfully.');
-                return $this->sendResponse(CommitteeResource::collection($committee), 'Committees data retrieved successfully.');
+                return $this->sendResponse(['committees' => $committees], 'Committees data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for committee.');
             }
@@ -131,7 +131,7 @@ class CommitteeController extends BaseController
         try {
             $committee = Committee::findOrFail($id);
             Log::info('Showing committee data for committee id: '.$id);
-            return $this->sendResponse(new CommitteeResource($committee), 'Committee retrieved successfully.');
+            return $this->sendResponse(['committee' => $committee], 'Committee retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve committee data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve committee data, committee not found.');
@@ -149,7 +149,7 @@ class CommitteeController extends BaseController
         try {
             $committee = Committee::findOrFail($id);
             Log::info('Edit committee data for committee id: '.$id);
-            return $this->sendResponse(new CommitteeResource($committee), 'Committee retrieved successfully.');
+            return $this->sendResponse(['committee' => $committee], 'Committee retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit committee data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit committee data, committee not found.');
@@ -193,7 +193,7 @@ class CommitteeController extends BaseController
                         $this->fileUpload($folder, $input, $files, $committee);
                     }
                     Log::info('Committee updated successfully for committee id: '.$id);
-                    return $this->sendResponse([], 'Committee updated successfully.');
+                    return $this->sendResponse(new CommitteeResource($committee), 'Committee updated successfully.');
                 } else {
                     return $this->sendError('Failed to update committee.');     
                 }

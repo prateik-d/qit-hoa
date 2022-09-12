@@ -178,7 +178,7 @@ class ClassifiedController extends BaseController
             $classified = Classified::find($id);
             if ($classified) {
                 Log::info('Showing classified item for item id: '.$id);
-                return $this->sendResponse($classified, 'Classified item retrieved successfully.');
+                return $this->sendResponse(['classified' => $classified], 'Classified item retrieved successfully.');
             } else {
                 return $this->sendError('Classified data not found.');     
             }
@@ -200,7 +200,7 @@ class ClassifiedController extends BaseController
             $classified = Classified::find($id);
             if ($classified) {
                 Log::info('Retrieved classified item to edit for item id: '.$id);
-                return $this->sendResponse($classified, 'Classified item retrieved successfully.');
+                return $this->sendResponse(['classified' => $classified], 'Classified item retrieved successfully.');
             } else {
                 return $this->sendError('Classified data not found.');     
             }

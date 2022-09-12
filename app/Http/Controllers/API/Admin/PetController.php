@@ -197,7 +197,7 @@ class PetController extends BaseController
     {
         try {
             $input = $request->except(['_method']);
-            $pet = Pet::findOrFail($id);
+            $pet = Pet::find($id);
             if ($pet) {
                 $update = $pet->fill($input)->save();
                 if ($update) {
@@ -308,7 +308,7 @@ class PetController extends BaseController
         try {
             $ids = $request->id;
             $pets = Pet::whereIn('id',explode(",",$ids))->get();
-            if ($pets) {
+            if (count($pets)) {
                 foreach ($pets as $pet) {
                     if ($pet->petImages()) {
                         foreach ($pet->petImages as $file) {
