@@ -134,6 +134,7 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::resource('breeds', BreedController::class);
     // Category API Routes
     Route::resource('categories', CategoryController::class);
+    Route::delete('delete-all-categories', [CategoryController::class, 'deleteAll']);
     // Pet API Routes
     Route::resource('pets', PetController::class);
     Route::get('filter-pets-by-type', [PetController::class, 'filterByType']);

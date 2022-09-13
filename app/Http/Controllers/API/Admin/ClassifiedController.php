@@ -297,7 +297,7 @@ class ClassifiedController extends BaseController
         try {
             $ids = $request->ids;
             $classifieds = Classified::whereIn('id',explode(",",$ids))->get();
-            if ($classifieds) {
+            if (count($classifieds)) {
                 foreach ($classifieds as $classified) {
                     // Delete images
                     if ($classified->classifiedImages()) {

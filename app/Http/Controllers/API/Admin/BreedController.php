@@ -172,4 +172,26 @@ class BreedController extends BaseController
             return $this->sendError($message);
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->id;
+            $breeds = Breed::whereIn('id',explode(",",$ids))->delete();
+            if ($breeds) {
+                Log::info('Selected breeds deleted successfully');
+                return $this->sendResponse([], 'Selected breeds deleted successfully.');
+            } else {
+                return $this->sendError('Breeds not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete breeds due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete breeds.');
+        }
+    }
 }

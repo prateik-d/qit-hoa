@@ -157,4 +157,26 @@ class CategoryController extends BaseController
             return $this->sendError($message);
         }
     }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->id;
+            $categories = Category::whereIn('id',explode(",",$ids))->delete();
+            if ($categories) {
+                Log::info('Selected categories deleted successfully');
+                return $this->sendResponse([], 'Selected categories deleted successfully.');
+            } else {
+                return $this->sendError('Categories not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete categories due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete categories.');
+        }
+    }
 }

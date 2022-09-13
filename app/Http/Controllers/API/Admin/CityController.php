@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\State;
 use App\Models\City;
 use App\Http\Requests\StoreCityRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -18,13 +19,13 @@ class CityController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
         try {
             $cities = City::all();
             if (count($cities)) {
                 Log::info('Cities data displayed successfully.');
-                return $this->sendResponse($cities, 'Cities data retrieved successfully.');
+                return $this->sendResponse(['cities' => $cities], 'Cities data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for cities.');
             }
@@ -45,7 +46,7 @@ class CityController extends BaseController
             $states = State::pluck('state','id');
             if (count($states)) {
                 Log::info('States data displayed successfully.');
-                return $this->sendResponse($states, 'States data retrieved successfully.');
+                return $this->sendResponse(['states' => $states], 'States data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for states.');
             }
@@ -69,7 +70,7 @@ class CityController extends BaseController
             $city = City::create($input);
             if ($city) {
                 Log::info('City added successfully.');
-                return $this->sendResponse($city, 'City added successfully.');
+                return $this->sendResponse(['city' => $city], 'City added successfully.');
             } else {
                 return $this->sendError('City not found.');     
             }
@@ -90,7 +91,7 @@ class CityController extends BaseController
         try {
             $city = City::findOrFail($id);
             Log::info('Showing city data for city id: '.$id);
-            return $this->sendResponse($city, 'City retrieved successfully.');
+            return $this->sendResponse(['city' => $city], 'City retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to retrieve city data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to retrieve city data, city not found.');
@@ -109,7 +110,7 @@ class CityController extends BaseController
             $states = State::pluck('state','id');
             $city = City::findOrFail($id);
             Log::info('Showing city data for city id: '.$id);
-            return $this->sendResponse([$states, $city], 'City retrieved successfully.');
+            return $this->sendResponse(['states'=> $states, 'city' => $city], 'City retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit city data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit city data, city not found.');
@@ -154,7 +155,7 @@ class CityController extends BaseController
     public function destroy($id)
     {
         try {
-            $city = City::findOrFail($id);
+            $city = City::find($id);
             if ($city) {
                 $city->delete();
                 Log::info('City deleted successfully for city id: '.$id);
@@ -165,6 +166,28 @@ class CityController extends BaseController
         } catch (Exception $e) {
             Log::error('Failed to delete city due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to delete city.');
+        }
+    }
+
+    /**
+     * Remove the resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $ids = $request->id;
+            $cities = City::whereIn('id',explode(",",$ids))->delete();
+            if ($cities) {
+                Log::info('Selected cities deleted successfully');
+                return $this->sendResponse([], 'Selected cities deleted successfully.');
+            } else {
+                return $this->sendError('Cities not found.');
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to delete cities due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete cities.');
         }
     }
 }
