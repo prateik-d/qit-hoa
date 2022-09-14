@@ -196,8 +196,8 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     // This should be under 'auth' middleware group
     Route::post('/mark-as-read', [VehicleController::class, 'markNotification'])->name('markNotification');
     // Ammenity API Routes
-    Route::resource('ammenities', AmmenityController::class);
-    Route::delete('delete-all-ammenities', [AmmenityController::class, 'deleteAll']);
+    Route::resource('amenities', AmmenityController::class);
+    Route::delete('delete-all-amenities', [AmmenityController::class, 'deleteAll']);
     // Committee API Routes
     Route::resource('committees', CommitteeController::class);
     Route::delete('delete-all-committees', [CommitteeController::class, 'deleteAll']);

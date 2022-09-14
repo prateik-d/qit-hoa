@@ -22,16 +22,16 @@ class AmmenityController extends BaseController
     public function index(Request $request)
     {
         try {
-            $ammenities = Ammenity::with('ammenityDocuments')->where('title', 'LIKE', '%'.$request->get('title'). '%')->get();
-            if (count($ammenities)) {
-                Log::info('Displayed ammenities data successfully.');
-                return $this->sendResponse(new AmmenityResource($ammenities), 'Ammenity retrieved successfully.');
+            $amenities = Ammenity::with('ammenityDocuments')->where('title', 'LIKE', '%'.$request->title. '%')->get();
+            if (count($amenities)) {
+                Log::info('Displayed amenities data successfully.');
+                return $this->sendResponse(['amenities' => $amenities], 'Ammenity retrieved successfully.');
             } else {
-                return $this->sendError('No data found for ammenities data.');
+                return $this->sendError('No data found for amenities data.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve ammenities data due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve ammenities data.');
+            Log::error('Failed to retrieve amenities data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve amenities data.');
         }
     }
 
@@ -53,7 +53,7 @@ class AmmenityController extends BaseController
      */
     public function store(StoreAmmenityRequest $request)
     {
-        try {
+        //try {
             $input = $request->all();
             $ammenity = Ammenity::create($input);
             if ($ammenity) {
@@ -68,10 +68,10 @@ class AmmenityController extends BaseController
             } else {
                 return $this->sendError('Failed to add ammenity.');     
             }
-        } catch (Exception $e) {
-            Log::error('Failed to add ammenity due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to add ammenity.');
-        }
+        // } catch (Exception $e) {
+        //     Log::error('Failed to add ammenity due to occurance of this exception'.'-'. $e->getMessage());
+        //     return $this->sendError('Operation failed to add ammenity.');
+        // }
     }
 
     /**
@@ -238,11 +238,11 @@ class AmmenityController extends BaseController
     {
         try {
             $ids = $request->id;
-            $ammenities = Ammenity::whereIn('id',explode(",",$ids))->get();
-            // print_r($ammenities);
+            $amenities = Ammenity::whereIn('id',explode(",",$ids))->get();
+            // print_r($amenities);
             // die;
-            if (count($ammenities)) {
-                foreach ($ammenities as $ammenity) {
+            if (count($amenities)) {
+                foreach ($amenities as $ammenity) {
                         // To delete related documents
                         if ($ammenity->ammenityDocuments()) {
                             foreach ($ammenity->ammenityDocuments as $file) {
@@ -254,14 +254,14 @@ class AmmenityController extends BaseController
                         }
                         $ammenity->delete();
                     }
-                    Log::info('Selected ammenities deleted successfully');
-                    return $this->sendResponse([], 'Selected ammenities deleted successfully.');
+                    Log::info('Selected amenities deleted successfully');
+                    return $this->sendResponse([], 'Selected amenities deleted successfully.');
             } else {
-                return $this->sendError('Ammenities not found.');
+                return $this->sendError('amenities not found.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to delete ammenities due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to delete ammenities.');
+            Log::error('Failed to delete amenities due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to delete amenities.');
         }
     }
 }
