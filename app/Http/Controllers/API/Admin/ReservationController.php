@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Amenity;
 use App\Models\Reservation;
 use App\Http\Resources\Reservation as ReservationResource;
 use App\Http\Requests\StoreReservationRequest;
@@ -21,7 +22,7 @@ class ReservationController extends BaseController
     public function index(Request $request)
     {
         try {
-            $reservations = Reservation::where('ammenity_id', 'LIKE', '%'.$request->get('venue'). '%')
+            $reservations = Reservation::where('amenity_id', 'LIKE', '%'.$request->get('venue'). '%')
             ->where('booking_date', 'LIKE' , '%'.$request->get('date').'%')
             ->get();
 
@@ -44,17 +45,17 @@ class ReservationController extends BaseController
     public function create()
     {
         try {
-            $ammenities = Ammenity::where('status',1)->orderBy('title','asc')->get();
+            $amenities = Amenity::orderBy('title','asc')->get();
 
-            if (count($ammenities)) {
-                Log::info('Ammenities data displayed successfully.');
-                return $this->sendResponse($categories, 'Ammenities data retrieved successfully.');
+            if (count($amenities)) {
+                Log::info('Amenities data displayed successfully.');
+                return $this->sendResponse(['amenities' => $amenities], 'Amenities data retrieved successfully.');
             } else {
-                return $this->sendError('No data found for ammenities.');
+                return $this->sendError('No data found for amenities.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve ammenities due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve ammenities.');
+            Log::error('Failed to retrieve amenities due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve amenities.');
         }
     }
 

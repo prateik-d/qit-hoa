@@ -24,7 +24,7 @@ class StoreReservationRequest extends FormRequest
     public function rules()
     {
         return [
-            'ammenity_id' => 'required',
+            'amenity_id' => 'required',
             'purpose' => 'required',
             'description' => 'required',
             // 'booking_date' => 'required|date',

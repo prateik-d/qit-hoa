@@ -21,7 +21,7 @@ use App\Http\Controllers\API\Admin\ViolationTypeController;
 use App\Http\Controllers\API\Admin\LostFoundItemController;
 use App\Http\Controllers\API\Admin\TicketController;
 use App\Http\Controllers\API\Admin\VehicleController;
-use App\Http\Controllers\API\Admin\AmmenityController;
+use App\Http\Controllers\API\Admin\AmenityController;
 use App\Http\Controllers\API\Admin\CommitteeController;
 use App\Http\Controllers\API\Admin\ReservationController;
 use App\Http\Controllers\API\Admin\DocumentController;
@@ -45,7 +45,7 @@ use App\Http\Controllers\API\User\PetController as UserPetController;
 use App\Http\Controllers\API\User\LostFoundItemController as UserLostFoundItemController;
 use App\Http\Controllers\API\User\EventController as UserEventController;
 use App\Http\Controllers\API\User\VehicleController as UserVehicleController;
-use App\Http\Controllers\API\User\AmmenityController as UserAmmenityController;
+use App\Http\Controllers\API\User\AmenityController as UserAmenityController;
 use App\Http\Controllers\API\User\CommitteeController as UserCommitteeController;
 use App\Http\Controllers\API\User\ReservationController as UserReservationController;
 use App\Http\Controllers\API\User\DocumentController as UserDocumentController;
@@ -90,8 +90,8 @@ Route::middleware('auth:api')->group( function () {
     Route::resource('user-tickets', UserTicketController::class);
     // Vehicle API Routes
     Route::resource('user-vehicles', UserVehicleController::class);
-    // Ammenity API Routes
-    Route::resource('user-ammenities', UserAmmenityController::class);
+    // Amenity API Routes
+    Route::resource('user-amenities', UserAmenityController::class);
     // Committee API Routes
     Route::resource('user-committees', UserCommitteeController::class);
     Route::get('/view-committee-member/{id}', [UserCommitteeController::class, 'viewMember']);
@@ -195,9 +195,9 @@ Route::group(['prefix' => 'admin',  'middleware' => 'admin'], function() {
     Route::delete('delete-all-vehicles', [VehicleController::class, 'deleteAll']);
     // This should be under 'auth' middleware group
     Route::post('/mark-as-read', [VehicleController::class, 'markNotification'])->name('markNotification');
-    // Ammenity API Routes
-    Route::resource('amenities', AmmenityController::class);
-    Route::delete('delete-all-amenities', [AmmenityController::class, 'deleteAll']);
+    // Amenity API Routes
+    Route::resource('amenities', AmenityController::class);
+    Route::delete('delete-all-amenities', [AmenityController::class, 'deleteAll']);
     // Committee API Routes
     Route::resource('committees', CommitteeController::class);
     Route::delete('delete-all-committees', [CommitteeController::class, 'deleteAll']);

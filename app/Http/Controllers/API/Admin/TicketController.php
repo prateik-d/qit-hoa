@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
-use App\Models\Ammenity;
+use App\Models\Amenity;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketImage;
@@ -69,11 +69,11 @@ class TicketController extends BaseController
     {
         try {
             $ticketCategories = TicketCategory::where('status', 1)->orderBy('category', 'ASC')->get();
-            $ammenities = Ammenity::orderBy('title', 'ASC')->get();
+            $amenities = Amenity::orderBy('title', 'ASC')->get();
 
             if (count($ticketCategories)) {
                 Log::info('Ticket categories data displayed successfully.');
-                return $this->sendResponse(['ticketCategories'=> $ticketCategories, 'ammenities' => $ammenities], 'Ticket categories data retrieved successfully.');
+                return $this->sendResponse(['ticketCategories'=> $ticketCategories, 'amenities' => $amenities], 'Ticket categories data retrieved successfully.');
             } else {
                 return $this->sendError('No data found for ticket categories.');
             }
@@ -178,10 +178,10 @@ class TicketController extends BaseController
     {
         try {
             $ticketCategories = TicketCategory::where('status', 1)->orderBy('category', 'ASC')->get();
-            $ammenities = Ammenity::orderBy('title', 'ASC')->get();
+            $amenities = Amenity::orderBy('title', 'ASC')->get();
             $ticket = Ticket::with('user', 'ticketImages', 'ticketCategory', 'assignedUser')->find($id);
             Log::info('Edit ticket data for ticket id: '.$id);
-            return $this->sendResponse(['ticketCategories' => $ticketCategories, 'ammenities' => $ammenities, 'ticket' => $ticket], 'Ticket retrieved successfully.');
+            return $this->sendResponse(['ticketCategories' => $ticketCategories, 'amenities' => $amenities, 'ticket' => $ticket], 'Ticket retrieved successfully.');
         } catch (Exception $e) {
             Log::error('Failed to edit ticket data due to occurance of this exception'.'-'. $e->getMessage());
             return $this->sendError('Operation failed to edit ticket data, ticket not found.');

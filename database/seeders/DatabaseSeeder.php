@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         \App\Models\User::factory(1)->create();
+        $this->call(AmenityTableSeeder::class);
         $this->call(CategoriesTableSeeder::class);
         $this->call(PermissionHeadingTableSeeder::class);
         $this->call(PermissionTableSeeder::class);

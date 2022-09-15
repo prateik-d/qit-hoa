@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
-use App\Models\Ammenity;
+use App\Models\Amenity;
 
 class Reservation extends Model
 {
@@ -17,7 +17,7 @@ class Reservation extends Model
      * @var array
      */
     protected $fillable = [
-        'ammenity_id',
+        'amenity_id',
         'purpose',
         'description',
         'booked_by',
@@ -35,8 +35,8 @@ class Reservation extends Model
         return $this->belongsTo(User::class,'id');
     }
 
-    public function ammenity()
+    public function amenity()
     {
-        return $this->belongsTo(Ammenity::class);
+        return $this->belongsTo(Amenity::class);
     }
 }

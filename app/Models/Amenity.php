@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\AmmenityDocument;
+use App\Models\AmenityDocument;
 use App\Models\Reservation;
 
-class Ammenity extends Model
+class Amenity extends Model
 {
     use HasFactory;
 
@@ -24,13 +24,14 @@ class Ammenity extends Model
         'timeslots'
     ];
 
-    public function ammenityDocuments()
+    public function amenityDocuments()
     {
-        return $this->hasMany(AmmenityDocument::class);
+        return $this->hasMany(AmenityDocument::class);
     }
 
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
     }
+    
 }

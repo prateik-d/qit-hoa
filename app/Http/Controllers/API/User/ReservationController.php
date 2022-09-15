@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\User;
-use App\Models\Ammenity;
+use App\Models\Amenity;
 use App\Models\Reservation;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Resources\Reservation as ReservationResource;
@@ -48,17 +48,17 @@ class ReservationController extends BaseController
     public function create()
     {
         try {
-            $ammenities = Ammenity::orderBy('title','asc')->get();
+            $amenities = Amenity::orderBy('title','asc')->get();
 
-            if (count($ammenities)) {
-                Log::info('Ammenities data displayed successfully.');
-                return $this->sendResponse($ammenities, 'Ammenities data retrieved successfully.');
+            if (count($amenities)) {
+                Log::info('Amenities data displayed successfully.');
+                return $this->sendResponse($amenities, 'Amenities data retrieved successfully.');
             } else {
-                return $this->sendError('No data found for ammenities.');
+                return $this->sendError('No data found for amenities.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve ammenities due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve ammenities.');
+            Log::error('Failed to retrieve amenities due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve amenities.');
         }
     }
 

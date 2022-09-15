@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAmmenityDocumentsTable extends Migration
+class CreateAmenityDocumentsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class CreateAmmenityDocumentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('ammenity_documents', function (Blueprint $table) {
+        Schema::create('amenity_documents', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('ammenity_id');
+            $table->unsignedBigInteger('amenity_id');
             $table->string('file_type');
             $table->string('file_path');
             $table->tinyInteger('status');
@@ -30,6 +30,6 @@ class CreateAmmenityDocumentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ammenity_documents');
+        Schema::dropIfExists('amenity_documents');
     }
 }

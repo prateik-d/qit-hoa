@@ -43,7 +43,7 @@ class ReservationRequestNotification extends Notification
     {
         return [
             'reservation_id' => $this->reservation->id,
-            'ammenity_id' => $this->reservation->ammenity_id,
+            'amenity_id' => $this->reservation->amenity_id,
             'purpose' => $this->reservation->purpose,
             'description' => $this->reservation->description,
             'booked_by' => $this->reservation->booked_by,

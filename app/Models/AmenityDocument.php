@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Amenity;
 
-class AmmenityDocument extends Model
+class AmenityDocument extends Model
 {
     use HasFactory;
 
@@ -16,7 +16,7 @@ class AmmenityDocument extends Model
      * @var array
      */
     protected $fillable = [
-        'ammenity_id',
+        'amenity_id',
         'file_type',
         'file_path',
         'status'

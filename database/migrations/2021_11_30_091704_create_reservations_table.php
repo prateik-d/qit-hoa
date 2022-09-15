@@ -15,13 +15,12 @@ class CreateReservationsTable extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('ammenity_id');
+            $table->unsignedBigInteger('amenity_id');
             $table->string('purpose');
             $table->text('description');
             $table->unsignedBigInteger('booked_by');
             $table->date('booking_date');
-            $table->time('timeslots_start');
-            $table->time('timeslots_end');
+            $table->string('booking_slot');
             $table->decimal('booking_price', 10, 2);
             $table->enum('payment_mode', ['cash', 'card', 'online'])->default('card');
             $table->dateTime('payment_date')->nullable();

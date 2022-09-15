@@ -7,12 +7,12 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Ammenity;
-use App\Models\AmmenityDocument;
-use App\Http\Requests\StoreAmmenityRequest;
-use App\Http\Resources\Ammenity as AmmenityResource;
+use App\Models\Amenity;
+use App\Models\AmenityDocument;
+use App\Http\Requests\StoreAmenityRequest;
+use App\Http\Resources\Amenity as AmenityResource;
 
-class AmmenityController extends BaseController
+class AmenityController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -22,16 +22,16 @@ class AmmenityController extends BaseController
     public function index(Request $request)
     {
         try {
-            $ammenities = Ammenity::with('ammenityDocuments')->where('title', 'LIKE', '%'.$request->get('title'). '%')->get();
-            if (count($ammenities)) {
-                Log::info('Displayed ammenities data successfully.');
-                return $this->sendResponse(new AmmenityResource($ammenities), 'Ammenity retrieved successfully.');
+            $amenities = Amenity::with('amenityDocuments')->where('title', 'LIKE', '%'.$request->get('title'). '%')->get();
+            if (count($amenities)) {
+                Log::info('Displayed amenities data successfully.');
+                return $this->sendResponse(new AmenityResource($amenities), 'Amenity retrieved successfully.');
             } else {
-                return $this->sendError('No data found for ammenities data.');
+                return $this->sendError('No data found for amenities data.');
             }
         } catch (Exception $e) {
-            Log::error('Failed to retrieve ammenities data due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve ammenities data.');
+            Log::error('Failed to retrieve amenities data due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve amenities data.');
         }
     }
 
@@ -65,12 +65,12 @@ class AmmenityController extends BaseController
     public function show($id)
     {
         try {
-            $ammenity = Ammenity::with('ammenityDocuments')->findOrFail($id);
-            Log::info('Showing ammenity for ammenity id: '.$id);
-            return $this->sendResponse(new AmmenityResource($ammenity), 'Ammenity retrieved successfully.');
+            $amenity = Amenity::with('amenityDocuments')->findOrFail($id);
+            Log::info('Showing amenity for amenity id: '.$id);
+            return $this->sendResponse(new AmenityResource($amenity), 'Amenity retrieved successfully.');
         } catch (Exception $e) {
-            Log::error('Failed to retrieve ammenity due to occurance of this exception'.'-'. $e->getMessage());
-            return $this->sendError('Operation failed to retrieve ammenity, ammenity not found.');
+            Log::error('Failed to retrieve amenity due to occurance of this exception'.'-'. $e->getMessage());
+            return $this->sendError('Operation failed to retrieve amenity, amenity not found.');
         }
     }
 

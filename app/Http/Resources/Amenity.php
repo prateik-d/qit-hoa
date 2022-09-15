@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class Ammenity extends JsonResource
+class Amenity extends JsonResource
 {
     /**
      * Transform the resource into an array.
